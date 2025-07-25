@@ -1,0 +1,61 @@
+# num rows, num cols
+50, 60
+# cost targets (min score target, max score target)
+726.6, 363.3
+# nodes targets (min score target, max score target)
+8000000, 5000000
+# UCS run time targets (min score target, max score target)
+1600.0, 800.0
+# A* run time targets (min score target, max score target)
+1100.0, 550.0
+# grid data
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+X      X       X  =X                               X X     X
+X=            EX ==X            P                  X  =====X
+XXXXXXXX===XXXXXX =X XXXXXXXXXXXXXXXXXXXX X=XXXX   XGX    =X
+X       =         =X           =X         X=X =X   X=     =X
+X       =         =X           =X         X=X =X   X=     =X
+X=      =         =X           =X         X=X =X   X=XXXXXXX
+X=     X=         =X           =X         X=X =X   X=X     X
+X=XXXXXX=         =X           =X     G   X=X =X   X=X     X
+X=     X=         =            =X  XXXXXXXX=XX=X   X=X     X
+X=     X=         =            =X          =XX=X   X=XXXXXXX
+X=      =         =            =X          =XX=X   X=      X
+XXXXXXXXXX=XXXXXX =   XXXXXXXX==X   ===    =  =X   X=X=    X
+X         =     X            X=   =X=      =  =X   X=X=    X
+X=        =     X            X=   =X=      =  =X   X=XXXXXXX
+X=     X  =     X            X=   =X=      =  =X   X=X     X
+X=     X  =     X            X=   =X=      =  =X   X=X     X
+X=        =     X   G        X=   =X=  XXXXXXXXX   X=X    =X
+XXXXXXXX  =     XXXXXXXXXXX  X=   =X=  X    G       =     =X
+X      X  =         X        XXXXXXXXXXX=XXXXXXXXXXX=XXXXXXX
+X         = X=====XXXXX                X=X           X     X
+XXXXXXXXXXXXX   = X   X==============XXX=X X= =            X
+X      X        = X              =     X=X X= =    X=XXXXXXX
+X=     X        = X              =     X=X X= =    X=X     X
+X=     X        = X              =     X=X X= =    X=X    =X
+X=     X        = X              =     X=X X= =    X=X    =X
+X=              ==X              =     X=XXXX =    X=X    =X
+XXXXXXXXX       ==X      XXXXXXXX=      =     =    X=X    =X
+X      X G       =XXXXX XX   G XXXXX===XXXXXXXXX=XXXXXXXXXXX
+X      XXXX      =      X    = XX          X    =X         X
+X                =  G        = XX     G   XX    =X=X       X
+XXXXXXXXX ==XXXXXXXXXX=      = XX=XXXXXXXXXXXXX =X=X       X
+X         =       X  X=      = XX=      X       = =        X
+X         =       X  X=      = XX=      X       = =XXXXXXXXX
+X      X  =       X  X=      = XX=      X       = =        X
+X       = ===     X   =          =     XX==   XXXXXX=X=    X
+XXXXXXXX=   =     XXXXXXX=   XXXXXXXX=   =   XX     =X=    X
+X      X=  X=            =           =  XXXXXX=     =XXXXXXX
+X       =  X=            =           =  X     =     =      X
+XXXXXXXX=  X=            =           =  XXXXXX=     =X=    X
+X      X=  X=     XXXXXXX=     XXXXXXXXXX     =     =X=    X
+X       =G X=     G  X   =           G        =X=  GXX=    X
+X XXXXXXXXXXX  XXXXXXXXXXXX  XXXXXXXXXXXXXXX  XXXXXXXXXXXX X
+X      X             X               X             X       X
+X                  X                 X                     X
+X      XXX         XXXXX           XXXXX         XXX       X
+XXX    XXX         XXXXX           XXXXX         XXXX     XX
+XXX    XXXXXX    XXXXXXXXXX       XXXXXXXXXX    XXXXX     XX
+XXXXX  XXXXX     XXXXXXXX        XXXXXXXXXXX   XXXXXXX   XXX
+XXXXX**XXXXXX****XXXXXXXXXX*****XXXXXXXXXXXX**XXXXXXXX***XXX
