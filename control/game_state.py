@@ -19,25 +19,25 @@ class GameState:
     Tester functions correctly.
     """
 
-    def __init__(self, row, col, gem_status):
+    def __init__(self, row, col, trap_status):
         self.row = row
         self.col = col
-        assert isinstance(gem_status, tuple), '!!! gem_status should be a tuple !!!'
-        self.gem_status = gem_status
+        assert isinstance(trap_status, tuple), '!!! gem_status should be a tuple !!!'
+        self.trap_status = trap_status
 
     def __eq__(self, other):
         if not isinstance(other, GameState):
             return False
-        return self.row == other.row and self.col == other.col and self.gem_status == other.gem_status
+        return self.row == other.row and self.col == other.col and self.trap_status == other.trap_status
 
     def __hash__(self):
-        return hash((self.row, self.col, *self.gem_status))
+        return hash((self.row, self.col, self.trap_status))
 
     def __repr__(self):
-        return f'row: {self.row},\t\t col: {self.col},\t\t gem status: {self.gem_status}'
+        return f'row: {self.row},\t\t col: {self.col}, \t\t trap status: {self.trap_status}'
 
     def deepcopy(self):
-        return GameState(self.row, self.col, self.gem_status)
+        return GameState(self.row, self.col, self.trap_status)
 
 
 
