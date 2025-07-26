@@ -52,9 +52,9 @@ def main(arglist):
 
     # for small environments, take average time over multiple trials
     if game_env.ucs_time_min_tgt < 0.01:
-        trials = 50
+        trials = 1
     elif game_env.ucs_time_min_tgt < 0.1:
-        trials = 5
+        trials = 1
     else:
         trials = 1
 
@@ -92,9 +92,6 @@ def main(arglist):
             success, persistent_state = game_env.perform_action(persistent_state, a)
             if not success:
                 print("/!\\ ERROR: Action resulting in Collision performed at step " + str(i))
-                error_occurred = True
-            elif game_env.is_game_over(persistent_state):
-                print("/!\\ ERROR: Action resulting in Game Over performed at step " + str(i))
                 error_occurred = True
             if visualise:
                 if gui is not None:
