@@ -81,14 +81,13 @@ class GUI:
                     self.canvas.create_image((c * self.tile_w), (r * self.tile_h), image=self.tile_ladder, anchor=tk.NW)
                 if self.game_env.grid_data[r][c] == GameEnv.AIR_TILE:
                     self.canvas.create_image((c * self.tile_w), (r * self.tile_h), image=self.tile_dirt, anchor=tk.NW)
-                if self.game_env.grid_data[r][c] == GameEnv.LAVA_TILE:
-                    self.canvas.create_image((c * self.tile_w), (r * self.tile_h), image=self.tile_lava, anchor=tk.NW)
-                if r == self.game_env.exit_row and c == self.game_env.exit_col:
-                    self.canvas.create_image((c * self.tile_w), (r * self.tile_h), image=self.tile_exit, anchor=tk.NW)
+                if self.game_env.grid_data[r][c] == GameEnv.TRAPDOOR:
+                    self.canvas.create_image((c * self.tile_w), (r * self.tile_h), image=self.tile_dirt, anchor=tk.NW)
+                if self.game_env.grid_data[r][c] == GameEnv.DRAWBRIDGE:
+                    self.canvas.create_image((c * self.tile_w), (r * self.tile_h), image=self.tile_dirt, anchor=tk.NW)
 
-        # draw gems for initial state
-        self.gem_images = None
-        self.draw_gems(init_state)
+                if r == self.game_env.goal_row and c == self.game_env.goal_col:
+                    self.canvas.create_image((c * self.tile_w), (r * self.tile_h), image=self.tile_exit, anchor=tk.NW)
 
         # draw dragon position for initial state
         self.dragon_image = None
@@ -98,10 +97,16 @@ class GUI:
         self.last_update_time = time.time()
 
     def update_state(self, state):
-        # remove all gems and re-add uncollected gems
-        for g in self.gem_images:
-            self.canvas.delete(g)
-        self.draw_gems(state)
+
+        for i, t in enumerate(state.trap_status):
+            if self.last_state.trap_status[i] != t:
+                if t == 1:
+                    self.canvas.create_image((self.game_env.trap_positions[i][1] * self.tile_w), (self.game_env.trap_positions[i][0] * self.tile_h),
+                                             image=self.tile_stone, anchor=tk.NW)
+                else:
+                    self.canvas.create_image((self.game_env.trap_positions[i][1] * self.tile_w), (self.game_env.trap_positions[i][0] * self.tile_h),
+                                             image=self.tile_dirt, anchor=tk.NW)
+
         # remove and re-draw dragon
         self.canvas.delete(self.dragon_image)
         self.draw_dragon(state.row, state.col)
@@ -124,13 +129,6 @@ class GUI:
         time.sleep(max(self.UPDATE_DELAY - time_since_last_update, 0))
         self.last_update_time = time.time()
 
-    def draw_gems(self, state):
-        self.gem_images = []
-        for i, (gr, gc) in enumerate(self.game_env.gem_positions):
-            if state.gem_status[i] == 0:
-                tile_gem = self.tile_gems[i % len(self.tile_gems)]
-                img = self.canvas.create_image((gc * self.tile_w), (gr * self.tile_h), image=tile_gem, anchor=tk.NW)
-                self.gem_images.append(img)
 
     def draw_dragon(self, row, col):
         self.dragon_image = self.canvas.create_image((col * self.tile_w), (row * self.tile_h),

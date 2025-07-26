@@ -35,7 +35,7 @@ def main(arglist):
     actions = []
     total_cost = 0
 
-    print('Available actions: wl, wr, j, gl1, gl2, gl3, gr1, gr2, gr3, d1, d2, d3, q[quit]')
+    print('Available actions: wl, wr, c, d, a, q[quit]')
 
     # run simulation
     while True:
@@ -56,10 +56,6 @@ def main(arglist):
         if game_env.is_solved(persistent_state):
             gui.update_state(persistent_state)
             print(f'Level completed with total cost of {round(total_cost, 1)}!')
-            break
-        elif game_env.is_game_over(persistent_state):
-            gui.update_state(persistent_state)
-            print(f'Game Over. total cost = {round(total_cost, 1)}')
             break
 
     return 0
