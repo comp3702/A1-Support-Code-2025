@@ -22,7 +22,7 @@ class GameState:
     def __init__(self, row, col, trap_status):
         self.row = row
         self.col = col
-        assert isinstance(trap_status, tuple), '!!! gem_status should be a tuple !!!'
+        assert isinstance(trap_status, tuple), '!!! trap_status should be a tuple !!!'
         self.trap_status = trap_status
 
     def __eq__(self, other):

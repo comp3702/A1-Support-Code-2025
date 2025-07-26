@@ -52,9 +52,9 @@ def main(arglist):
 
     # for small environments, take average time over multiple trials
     if game_env.ucs_time_min_tgt < 0.01:
-        trials = 1
+        trials = 50
     elif game_env.ucs_time_min_tgt < 0.1:
-        trials = 1
+        trials = 5
     else:
         trials = 1
 
