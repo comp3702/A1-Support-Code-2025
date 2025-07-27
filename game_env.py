@@ -33,10 +33,8 @@ class GameEnv:
     DRAWBRIDGE = "D"
     GOAL_TILE = "G"
     PLAYER_TILE = "P"
-    LEVER_1 = "A"
-    LEVER_2 = "B"
-    LEVER_3 = "C"
-    LEVERS = {LEVER_1, LEVER_2, LEVER_3}
+    LEVER = "L"
+    LEVERS = {LEVER}
     VALID_TILES = {
         SOLID_TILE,
         LADDER_TILE,
@@ -77,12 +75,24 @@ class GameEnv:
         except FileNotFoundError:
             assert False, "/!\\ ERROR: Testcase file not found"
 
-        lever_map_icons = {}
         grid_data = []
+        schematic_data = []
+        reading_schematic = False
         i = 0
         for line in f:
+            # Check if we've hit the schematic section
+            if line.strip().startswith("# Schematic"):
+                reading_schematic = True
+                continue
+                
             # skip annotations in input file
-            if line.strip()[0] == "#":
+            if line.strip().startswith("#"):
+                continue
+
+            if reading_schematic:
+                # Read schematic grid data
+                if len(line.rstrip()) <= self.n_cols:
+                    schematic_data.append(list(line.rstrip().ljust(self.n_cols)))
                 continue
 
             if i == 0:
@@ -141,16 +151,8 @@ class GameEnv:
                     )
 
             elif i == 5:
-                # Mappings of levers to corresponding traps
-                try:
-                    entries = line.strip().split(",")  # Split by comma
-                    for entry in entries:
-                        lever, trap = entry.strip().split(":")
-                        lever_map_icons[lever.strip()] = trap.strip()
-                except ValueError:
-                    assert False, (
-                        f"/!\\ ERROR: Invalid input file - lever to trap map (line {i})"
-                    )
+                # Skip lever mapping line - we'll use position-based mapping instead
+                pass
 
             elif len(line.strip()) > 0:
                 grid_data.append(list(line.strip()))
@@ -199,13 +201,21 @@ class GameEnv:
             "/!\\ ERROR: Invalid input file - No exit position"
         )
 
-        lever_map_positions = {}  # Map lever positions to corresponding trap positions
-        for lever_position in lever_positions:
-            lever_map_positions[lever_position] = trap_positions[
-                trap_icons.index(
-                    lever_map_icons[grid_data[lever_position[0]][lever_position[1]]]
-                )
-            ]
+        # Store schematic data if available
+        self.schematic_data = schematic_data if schematic_data else None
+        
+        # Map lever positions to trap positions
+        if self.schematic_data:
+            # Use schematic-based mapping
+            lever_map_positions = self._create_schematic_mapping(lever_positions, trap_positions)
+        else:
+            # Fallback to position-based mapping (order of appearance)
+            assert len(lever_positions) == len(trap_positions), (
+                f"/!\\ ERROR: Number of levers ({len(lever_positions)}) must match number of traps ({len(trap_positions)})"
+            )
+            lever_map_positions = {}
+            for i, lever_position in enumerate(lever_positions):
+                lever_map_positions[lever_position] = trap_positions[i]
 
         self.lever_positions = lever_positions
         self.lever_map_positions = lever_map_positions
@@ -213,6 +223,9 @@ class GameEnv:
             lever_map_positions[lever_position] for lever_position in lever_positions
         ]
         self.trap_icons = trap_icons
+
+        # Create lever-trap mapping grid
+        self.lever_trap_mapping = self._create_lever_trap_mapping_grid()
 
         assert len(grid_data) == self.n_rows, (
             f"/!\\ ERROR: Invalid input file - incorrect number of map rows"
@@ -386,3 +399,127 @@ class GameEnv:
                     line += self.grid_data[r][c] * 3
             print(line)
         print('\n' * 2)
+
+    def _create_schematic_mapping(self, lever_positions, trap_positions):
+        """
+        Create lever-to-trap mapping based on schematic data.
+        
+        Args:
+            lever_positions: List of lever coordinate tuples
+            trap_positions: List of trap coordinate tuples
+            
+        Returns:
+            dict: Mapping from lever positions to trap positions
+        """
+        lever_map_positions = {}
+        
+        # Create ID lookup from schematic (only if schematic exists)
+        if not self.schematic_data:
+            return {}
+            
+        id_to_positions = {}
+        for r in range(len(self.schematic_data)):
+            for c in range(len(self.schematic_data[r])):
+                char = self.schematic_data[r][c]
+                if char.isdigit() and char != '0':
+                    id_val = int(char)
+                    if id_val not in id_to_positions:
+                        id_to_positions[id_val] = []
+                    id_to_positions[id_val].append((r, c))
+        
+        # Map levers to traps based on shared IDs in schematic
+        for lever_pos in lever_positions:
+            lever_row, lever_col = lever_pos
+            if lever_row < len(self.schematic_data) and lever_col < len(self.schematic_data[lever_row]):
+                schematic_char = self.schematic_data[lever_row][lever_col]
+                if schematic_char.isdigit() and schematic_char != '0':
+                    # Find the trap with the same ID
+                    for trap_pos in trap_positions:
+                        trap_row, trap_col = trap_pos
+                        if (trap_row < len(self.schematic_data) and 
+                            trap_col < len(self.schematic_data[trap_row]) and
+                            self.schematic_data[trap_row][trap_col] == schematic_char):
+                            lever_map_positions[lever_pos] = trap_pos
+                            break
+        
+        # Fallback to position-based mapping for unmapped levers
+        unmapped_levers = [lev for lev in lever_positions if lev not in lever_map_positions]
+        unmapped_traps = [trap for trap in trap_positions if trap not in lever_map_positions.values()]
+        
+        for i, lever_pos in enumerate(unmapped_levers):
+            if i < len(unmapped_traps):
+                lever_map_positions[lever_pos] = unmapped_traps[i]
+        
+        return lever_map_positions
+
+    def _create_lever_trap_mapping_grid(self):
+        """
+        Create a mapping grid where lever-trap pairs share the same ID number.
+        
+        Returns:
+            2D list where non-zero values indicate lever-trap relationships
+        """
+        # Initialize mapping grid with zeros
+        mapping_grid = [[0 for _ in range(self.n_cols)] for _ in range(self.n_rows)]
+        
+        # Assign unique IDs to each lever-trap pair
+        pair_id = 1
+        
+        for lever_pos in self.lever_positions:
+            trap_pos = self.lever_map_positions[lever_pos]
+            
+            # Assign same ID to both lever and trap positions
+            mapping_grid[lever_pos[0]][lever_pos[1]] = pair_id
+            mapping_grid[trap_pos[0]][trap_pos[1]] = pair_id
+            
+            pair_id += 1
+        
+        return mapping_grid
+
+    def get_lever_trap_id(self, row, col):
+        """
+        Get the lever-trap pair ID for a given position.
+        
+        Args:
+            row, col: Grid coordinates
+            
+        Returns:
+            int: Pair ID (0 if position not part of any lever-trap system)
+        """
+        if 0 <= row < self.n_rows and 0 <= col < self.n_cols:
+            return self.lever_trap_mapping[row][col]
+        return 0
+
+    def get_related_positions(self, row, col):
+        """
+        Get all positions related to the given position via lever-trap relationships.
+        
+        Args:
+            row, col: Grid coordinates
+            
+        Returns:
+            list: List of (row, col) tuples that are connected via lever-trap system
+        """
+        pair_id = self.get_lever_trap_id(row, col)
+        if pair_id == 0:
+            return []
+        
+        related_positions = []
+        for r in range(self.n_rows):
+            for c in range(self.n_cols):
+                if self.lever_trap_mapping[r][c] == pair_id:
+                    related_positions.append((r, c))
+        
+        return related_positions
+
+    def is_lever_trap_position(self, row, col):
+        """
+        Check if a position is part of any lever-trap system.
+        
+        Args:
+            row, col: Grid coordinates
+            
+        Returns:
+            bool: True if position is a lever or trap
+        """
+        return self.get_lever_trap_id(row, col) != 0
