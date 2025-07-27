@@ -8,17 +8,26 @@
 0.0020, 0.0012
 # A* run time targets (min score target, max score target)
 0.0014, 0.0007
-# Lever map to trap
-A: T, B: D
 # grid data
 XXXXXXXXX
-XG     AX
+XG     LX
 XXXTXX=XX
 X     = X
 XX=XXXX=X
 X =    =X
 X=XXXXXXX
-X=     BX
+X=     LX
 XXDXX=XXX
 XP   =  X
 XXXXXXXXX
+# Schematic
+
+       1
+   1
+
+
+
+
+       2
+  2
+

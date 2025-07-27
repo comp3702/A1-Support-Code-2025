@@ -76,7 +76,7 @@ def generate_schematic_format(env, mapping_grid):
 
 def main():
     """Test the mapping concept with the traps testcase."""
-    env = GameEnv('testcases/traps_new.txt')
+    env = GameEnv('testcases/traps.txt')
     mapping_grid = create_lever_trap_mapping_grid(env)
     print_mapping_grids(env, mapping_grid)
     generate_schematic_format(env, mapping_grid)
