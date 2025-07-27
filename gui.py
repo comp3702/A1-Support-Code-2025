@@ -270,7 +270,7 @@ class GUI:
                     )
             else:
                 # Draw open or closed trapdoor and lever based on trap status
-                # and player position (open trapdoor if player is on it)
+                # and player position (open trapdoor if player is above or on it)
                 if t == 1:
                     lever_img = self.canvas.create_image(
                         (self.game_env.lever_positions[i][1] * self.tile_w),
@@ -291,7 +291,8 @@ class GUI:
                         image=self.tile_closed_lever_1,
                         anchor=tk.NW,
                     )
-                    if (state.row + 1, state.col) == self.game_env.trap_positions[i]:
+                    if ((state.row + 1, state.col) == self.game_env.trap_positions[i] or
+                            (state.row, state.col) == self.game_env.trap_positions[i]):
                         trap_img = self.canvas.create_image(
                             (self.game_env.trap_positions[i][1] * self.tile_w),
                             (self.game_env.trap_positions[i][0] * self.tile_h),
