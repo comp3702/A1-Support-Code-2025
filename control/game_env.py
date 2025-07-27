@@ -34,7 +34,6 @@ class GameEnv:
     GOAL_TILE = "G"
     PLAYER_TILE = "P"
     LEVER = "L"
-    LEVERS = {LEVER}
     VALID_TILES = {
         SOLID_TILE,
         LADDER_TILE,
@@ -160,7 +159,6 @@ class GameEnv:
 
         # Extract initial, goal, trap, and lever positions
         trap_positions = []  # Record positions of traps
-        trap_icons = []  # Record trap icons in same order of traps
         lever_positions = []  # Record positions of levers
         self.init_row, self.init_col = None, None
         self.goal_row, self.goal_col = None, None
@@ -182,12 +180,9 @@ class GameEnv:
                     grid_data[r][c] = self.AIR_TILE
                 elif grid_data[r][c] == self.DRAWBRIDGE:
                     trap_positions.append((r, c))
-                    trap_icons.append(grid_data[r][c])
                 elif grid_data[r][c] == self.TRAPDOOR:
-                    # assume all trapdoors are placed on air tiles
                     trap_positions.append((r, c))
-                    trap_icons.append(grid_data[r][c])
-                elif grid_data[r][c] in self.LEVERS:
+                elif grid_data[r][c] == self.LEVER:
                     lever_positions.append((r, c))
 
         assert self.init_row is not None and self.init_col is not None, (
@@ -203,7 +198,9 @@ class GameEnv:
         # Map lever positions to trap positions
         if self.schematic_data:
             # Use schematic-based mapping
-            lever_map_positions = self._create_schematic_mapping(lever_positions, trap_positions)
+            lever_map_positions = self._create_schematic_mapping(
+                lever_positions, trap_positions
+            )
         else:
             # Fallback to position-based mapping (order of appearance)
             assert len(lever_positions) == len(trap_positions), (
@@ -218,7 +215,6 @@ class GameEnv:
         self.trap_positions = [
             lever_map_positions[lever_position] for lever_position in lever_positions
         ]
-        self.trap_icons = trap_icons
 
         # Create lever-trap mapping grid
         self.lever_trap_mapping = self._create_lever_trap_mapping_grid()
@@ -248,19 +244,19 @@ class GameEnv:
 
         # Check action is valid
         if (
-                action in (self.WALK_LEFT, self.WALK_RIGHT)
-                and self.grid_data[state.row + 1][state.col] == self.TRAPDOOR
-                and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
-                == 0
+            action in (self.WALK_LEFT, self.WALK_RIGHT)
+            and self.grid_data[state.row + 1][state.col] == self.TRAPDOOR
+            and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
+            == 0
         ):
             # Cannot walk on a trapdoor that is not locked
             return False, state.deepcopy()
 
         elif (
-                action in (self.WALK_LEFT, self.WALK_RIGHT)
-                and self.grid_data[state.row + 1][state.col] == self.DRAWBRIDGE
-                and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
-                == 0
+            action in (self.WALK_LEFT, self.WALK_RIGHT)
+            and self.grid_data[state.row + 1][state.col] == self.DRAWBRIDGE
+            and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
+            == 0
         ):
             # Cannot walk on a drawbridge that is closed
             return False, state.deepcopy()
@@ -268,44 +264,44 @@ class GameEnv:
         elif action in (self.WALK_LEFT, self.WALK_RIGHT) and self.grid_data[
             state.row + 1
         ][state.col] not in (
-                self.SOLID_TILE,
-                self.LADDER_TILE,
-                self.DRAWBRIDGE,
-                self.TRAPDOOR,
+            self.SOLID_TILE,
+            self.LADDER_TILE,
+            self.DRAWBRIDGE,
+            self.TRAPDOOR,
         ):
             # Cannot walk on invalid surface (tiles not listed)
             return False, state.deepcopy()
 
         elif (
-                action == self.CLIMB
-                and self.grid_data[state.row][state.col] != self.LADDER_TILE
+            action == self.CLIMB
+            and self.grid_data[state.row][state.col] != self.LADDER_TILE
         ):
             # Cannot climb on invalid tile (can only climb on ladders)
             return False, state.deepcopy()
 
         elif (
-                action == self.DROP
-                and self.grid_data[state.row + 1][state.col] == self.TRAPDOOR
-                and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
-                == 1
+            action == self.DROP
+            and self.grid_data[state.row + 1][state.col] == self.TRAPDOOR
+            and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
+            == 1
         ):
             # Cannot drop through locked trapdoor
             return False, state.deepcopy()
 
         elif (
-                action == self.DROP
-                and self.grid_data[state.row + 1][state.col] == self.DRAWBRIDGE
-                and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
-                == 1
+            action == self.DROP
+            and self.grid_data[state.row + 1][state.col] == self.DRAWBRIDGE
+            and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
+            == 1
         ):
             # Cannot drop through open drawbridge
             return False, state.deepcopy()
 
         elif action == self.DROP and self.grid_data[state.row + 1][state.col] not in (
-                self.LADDER_TILE,
-                self.AIR_TILE,
-                self.DRAWBRIDGE,
-                self.TRAPDOOR,
+            self.LADDER_TILE,
+            self.AIR_TILE,
+            self.DRAWBRIDGE,
+            self.TRAPDOOR,
         ):
             # Cannot drop through invalid tile (tiles not listed)
             return False, state.deepcopy()
@@ -361,9 +357,9 @@ class GameEnv:
             # Collision with a solid tile
             return False, state.deepcopy()
         elif (
-                self.grid_data[next_row + 1][next_col] is self.DRAWBRIDGE
-                and next_trap_status[self.trap_positions.index((next_row + 1, next_col))]
-                == 0
+            self.grid_data[next_row + 1][next_col] is self.DRAWBRIDGE
+            and next_trap_status[self.trap_positions.index((next_row + 1, next_col))]
+            == 0
         ):
             # Collision with a closed drawbridge
             return False, state.deepcopy()
@@ -390,11 +386,11 @@ class GameEnv:
                     line += self.grid_data[r][c] + "P" + self.grid_data[r][c]
                 elif self.goal_row == r and self.goal_col == c:
                     # Current tile is exit
-                    line += self.grid_data[r][c] + 'G' + self.grid_data[r][c]
+                    line += self.grid_data[r][c] + "G" + self.grid_data[r][c]
                 else:
                     line += self.grid_data[r][c] * 3
             print(line)
-        print('\n' * 2)
+        print("\n" * 2)
 
     def _create_schematic_mapping(self, lever_positions, trap_positions):
         """
@@ -417,7 +413,7 @@ class GameEnv:
         for r in range(len(self.schematic_data)):
             for c in range(len(self.schematic_data[r])):
                 char = self.schematic_data[r][c]
-                if char.isdigit() and char != '0':
+                if char.isdigit() and char != "0":
                     id_val = int(char)
                     if id_val not in id_to_positions:
                         id_to_positions[id_val] = []
@@ -426,21 +422,30 @@ class GameEnv:
         # Map levers to traps based on shared IDs in schematic
         for lever_pos in lever_positions:
             lever_row, lever_col = lever_pos
-            if lever_row < len(self.schematic_data) and lever_col < len(self.schematic_data[lever_row]):
+            if lever_row < len(self.schematic_data) and lever_col < len(
+                self.schematic_data[lever_row]
+            ):
                 schematic_char = self.schematic_data[lever_row][lever_col]
-                if schematic_char.isdigit() and schematic_char != '0':
+                if schematic_char.isdigit() and schematic_char != "0":
                     # Find the trap with the same ID
                     for trap_pos in trap_positions:
                         trap_row, trap_col = trap_pos
-                        if (trap_row < len(self.schematic_data) and
-                                trap_col < len(self.schematic_data[trap_row]) and
-                                self.schematic_data[trap_row][trap_col] == schematic_char):
+                        if (
+                            trap_row < len(self.schematic_data)
+                            and trap_col < len(self.schematic_data[trap_row])
+                            and self.schematic_data[trap_row][trap_col]
+                            == schematic_char
+                        ):
                             lever_map_positions[lever_pos] = trap_pos
                             break
 
         # Fallback to position-based mapping for unmapped levers
-        unmapped_levers = [lev for lev in lever_positions if lev not in lever_map_positions]
-        unmapped_traps = [trap for trap in trap_positions if trap not in lever_map_positions.values()]
+        unmapped_levers = [
+            lev for lev in lever_positions if lev not in lever_map_positions
+        ]
+        unmapped_traps = [
+            trap for trap in trap_positions if trap not in lever_map_positions.values()
+        ]
 
         for i, lever_pos in enumerate(unmapped_levers):
             if i < len(unmapped_traps):

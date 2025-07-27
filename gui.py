@@ -23,6 +23,8 @@ class GUI:
     TWEEN_DELAY = 0.005
 
     def __init__(self, game_env):
+        self.lever_images = None
+        self.trap_images = None
         self.game_env = game_env
         init_state = game_env.get_init_state()
         self.last_state = init_state
@@ -233,7 +235,12 @@ class GUI:
         self.lever_images = []
 
         for i, t in enumerate(state.trap_status):
-            if self.game_env.trap_icons[i] == self.game_env.DRAWBRIDGE:
+            if (
+                self.game_env.grid_data[self.game_env.trap_positions[i][0]][
+                    self.game_env.trap_positions[i][1]
+                ]
+                == self.game_env.DRAWBRIDGE
+            ):
                 # Draw open or closed drawbridge and lever based on trap status
                 if t == 1:
                     trap_img = self.canvas.create_image(

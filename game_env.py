@@ -34,7 +34,6 @@ class GameEnv:
     GOAL_TILE = "G"
     PLAYER_TILE = "P"
     LEVER = "L"
-    LEVERS = {LEVER}
     VALID_TILES = {
         SOLID_TILE,
         LADDER_TILE,
@@ -160,7 +159,6 @@ class GameEnv:
 
         # Extract initial, goal, trap, and lever positions
         trap_positions = []  # Record positions of traps
-        trap_icons = []  # Record trap icons in same order of traps
         lever_positions = []  # Record positions of levers
         self.init_row, self.init_col = None, None
         self.goal_row, self.goal_col = None, None
@@ -182,12 +180,9 @@ class GameEnv:
                     grid_data[r][c] = self.AIR_TILE
                 elif grid_data[r][c] == self.DRAWBRIDGE:
                     trap_positions.append((r, c))
-                    trap_icons.append(grid_data[r][c])
                 elif grid_data[r][c] == self.TRAPDOOR:
-                    # assume all trapdoors are placed on air tiles
                     trap_positions.append((r, c))
-                    trap_icons.append(grid_data[r][c])
-                elif grid_data[r][c] in self.LEVERS:
+                elif grid_data[r][c] == self.LEVER:
                     lever_positions.append((r, c))
 
         assert self.init_row is not None and self.init_col is not None, (
@@ -218,7 +213,6 @@ class GameEnv:
         self.trap_positions = [
             lever_map_positions[lever_position] for lever_position in lever_positions
         ]
-        self.trap_icons = trap_icons
 
         # Create lever-trap mapping grid
         self.lever_trap_mapping = self._create_lever_trap_mapping_grid()
