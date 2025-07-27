@@ -150,10 +150,6 @@ class GameEnv:
                         f"/!\\ ERROR: Invalid input file - A* time targets (line {i})"
                     )
 
-            elif i == 5:
-                # Skip lever mapping line - we'll use position-based mapping instead
-                pass
-
             elif len(line.strip()) > 0:
                 grid_data.append(list(line.strip()))
                 assert len(grid_data[-1]) == self.n_cols, (
