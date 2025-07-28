@@ -93,9 +93,6 @@ def main(arglist):
             if not success:
                 print("/!\\ ERROR: Action resulting in Collision performed at step " + str(i))
                 error_occurred = True
-            elif game_env.is_game_over(persistent_state):
-                print("/!\\ ERROR: Action resulting in Game Over performed at step " + str(i))
-                error_occurred = True
             if visualise:
                 if gui is not None:
                     gui.update_state(persistent_state)

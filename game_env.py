@@ -25,35 +25,41 @@ class GameEnv:
     GameEnv instance as a simulator.
     """
 
-    # input file symbols
-    SOLID_TILE = 'X'
-    LADDER_TILE = '='
-    AIR_TILE = ' '
-    LAVA_TILE = '*'
-    GEM_TILE = 'G'
-    EXIT_TILE = 'E'
-    PLAYER_TILE = 'P'
-    VALID_TILES = {SOLID_TILE, LADDER_TILE, AIR_TILE, LAVA_TILE, GEM_TILE, EXIT_TILE, PLAYER_TILE}
+    # Input file symbols
+    SOLID_TILE = "X"
+    LADDER_TILE = "="
+    AIR_TILE = " "
+    TRAPDOOR = "T"
+    DRAWBRIDGE = "D"
+    GOAL_TILE = "G"
+    PLAYER_TILE = "P"
+    LEVER = "L"
+    VALID_TILES = {
+        SOLID_TILE,
+        LADDER_TILE,
+        AIR_TILE,
+        TRAPDOOR,
+        DRAWBRIDGE,
+        GOAL_TILE,
+        PLAYER_TILE,
+    }
 
-    # action symbols (i.e. output file symbols)
-    WALK_LEFT = 'wl'
-    WALK_RIGHT = 'wr'
-    JUMP = 'j'
-    GLIDE_LEFT_1 = 'gl1'
-    GLIDE_LEFT_2 = 'gl2'
-    GLIDE_LEFT_3 = 'gl3'
-    GLIDE_RIGHT_1 = 'gr1'
-    GLIDE_RIGHT_2 = 'gr2'
-    GLIDE_RIGHT_3 = 'gr3'
-    DROP_1 = 'd1'
-    DROP_2 = 'd2'
-    DROP_3 = 'd3'
-    ACTIONS = {WALK_LEFT, WALK_RIGHT, JUMP, GLIDE_LEFT_1, GLIDE_LEFT_2, GLIDE_LEFT_3,
-               GLIDE_RIGHT_1, GLIDE_RIGHT_2, GLIDE_RIGHT_3, DROP_1, DROP_2, DROP_3}
-    ACTION_COST = {WALK_LEFT: 1.0, WALK_RIGHT: 1.0, JUMP: 2.0, GLIDE_LEFT_1: 0.7, GLIDE_LEFT_2: 1.0, GLIDE_LEFT_3: 1.2,
-                   GLIDE_RIGHT_1: 0.7, GLIDE_RIGHT_2: 1.0, GLIDE_RIGHT_3: 1.2, DROP_1: 0.3, DROP_2: 0.4, DROP_3: 0.5}
+    # Action symbols (i.e. output file symbols)
+    WALK_LEFT = "wl"
+    WALK_RIGHT = "wr"
+    CLIMB = "c"
+    DROP = "d"
+    ACTIVATE = "a"
+    ACTIONS = {WALK_LEFT, WALK_RIGHT, CLIMB, DROP, ACTIVATE}
+    ACTION_COST = {
+        WALK_LEFT: 1.0,
+        WALK_RIGHT: 1.0,
+        CLIMB: 2.0,
+        DROP: 0.5,
+        ACTIVATE: 1.0,
+    }
 
-    # perform action return statuses
+    # Perform action return statuses
     SUCCESS = 0
     COLLISION = 1
     GAME_OVER = 2
@@ -64,98 +70,166 @@ class GameEnv:
         :param filename: name of input file
         """
         try:
-            f = open(filename, 'r')
+            f = open(filename, "r")
         except FileNotFoundError:
-            assert False, '/!\\ ERROR: Testcase file not found'
+            assert False, "/!\\ ERROR: Testcase file not found"
 
         grid_data = []
+        schematic_data = []
+        reading_schematic = False
         i = 0
         for line in f:
+            # Check if we've hit the schematic section
+            if line.strip().startswith("# Schematic"):
+                reading_schematic = True
+                continue
+                
             # skip annotations in input file
-            if line.strip()[0] == '#':
+            if line.strip().startswith("#"):
+                continue
+
+            if reading_schematic:
+                # Read schematic grid data
+                if len(line.rstrip()) <= self.n_cols:
+                    schematic_data.append(list(line.rstrip().ljust(self.n_cols)))
                 continue
 
             if i == 0:
                 try:
-                    self.n_rows, self.n_cols = \
-                        tuple([int(x) for x in line.strip().split(',')])
+                    # Number of rows and columns in lever
+                    self.n_rows, self.n_cols = tuple(
+                        [int(x) for x in line.strip().split(",")]
+                    )
                 except ValueError:
-                    assert False, f'/!\\ ERROR: Invalid input file - n_rows and n_cols (line {i})'
+                    assert False, (
+                        f"/!\\ ERROR: Invalid input file - n_rows and n_cols (line {i})"
+                    )
+
             elif i == 1:
                 try:
-                    # cost targets - used for both UCS and A*
-                    self.cost_min_tgt, self.cost_max_tgt = \
-                        tuple([float(x) for x in line.strip().split(',')])
+                    # Cost targets - used for both UCS and A*
+                    self.cost_min_tgt, self.cost_max_tgt = tuple(
+                        [float(x) for x in line.strip().split(",")]
+                    )
                 except ValueError:
-                    assert False, f'/!\\ ERROR: Invalid input file - cost targets (line {i})'
+                    assert False, (
+                        f"/!\\ ERROR: Invalid input file - cost targets (line {i})"
+                    )
+
             elif i == 2:
                 try:
-                    # nodes expanded targets - used for A* heuristic eval only
-                    self.nodes_min_tgt, self.nodes_max_tgt = \
-                        tuple([float(x) for x in line.strip().split(',')])
+                    # Nodes expanded targets - used for A* heuristic eval only
+                    self.nodes_min_tgt, self.nodes_max_tgt = tuple(
+                        [float(x) for x in line.strip().split(",")]
+                    )
                 except ValueError:
-                    assert False, f'/!\\ ERROR: Invalid input file - nodes targets (line {i})'
+                    assert False, (
+                        f"/!\\ ERROR: Invalid input file - nodes targets (line {i})"
+                    )
+
             elif i == 3:
                 try:
-                    self.ucs_time_min_tgt, self.ucs_time_max_tgt = \
-                        tuple([float(x) for x in line.strip().split(',')])
+                    # UCS target times
+                    self.ucs_time_min_tgt, self.ucs_time_max_tgt = tuple(
+                        [float(x) for x in line.strip().split(",")]
+                    )
                 except ValueError:
-                    assert False, f'/!\\ ERROR: Invalid input file - UCS time targets (line {i})'
+                    assert False, (
+                        f"/!\\ ERROR: Invalid input file - UCS time targets (line {i})"
+                    )
+
             elif i == 4:
                 try:
-                    self.a_star_time_min_tgt, self.a_star_time_max_tgt = \
-                        tuple([float(x) for x in line.strip().split(',')])
+                    # A* target times
+                    self.a_star_time_min_tgt, self.a_star_time_max_tgt = tuple(
+                        [float(x) for x in line.strip().split(",")]
+                    )
                 except ValueError:
-                    assert False, f'/!\\ ERROR: Invalid input file - A* time targets (line {i})'
+                    assert False, (
+                        f"/!\\ ERROR: Invalid input file - A* time targets (line {i})"
+                    )
 
             elif len(line.strip()) > 0:
                 grid_data.append(list(line.strip()))
-                assert len(grid_data[-1]) == self.n_cols,\
-                    f'/!\\ ERROR: Invalid input file - incorrect map row length (line {i})'
+                assert len(grid_data[-1]) == self.n_cols, (
+                    f"/!\\ ERROR: Invalid input file - incorrect map row length (line {i})"
+                )
 
             i += 1
 
-        # extract gem, exit and initial positions
-        gem_positions = []
+        # Extract initial, goal, trap, and lever positions
+        trap_positions = []  # Record positions of traps
+        lever_positions = []  # Record positions of levers
         self.init_row, self.init_col = None, None
-        self.exit_row, self.exit_col = None, None
+        self.goal_row, self.goal_col = None, None
         for r in range(self.n_rows):
             for c in range(self.n_cols):
                 if grid_data[r][c] == self.PLAYER_TILE:
-                    assert self.init_row is None and self.init_col is None, \
-                        '/!\\ ERROR: Invalid input file - more than one initial player position'
+                    assert self.init_row is None and self.init_col is None, (
+                        "/!\\ ERROR: Invalid input file - more than one initial player position"
+                    )
                     self.init_row, self.init_col = r, c
                     # assume player starts on air tile
                     grid_data[r][c] = self.AIR_TILE
-                elif grid_data[r][c] == 'E':
-                    assert self.exit_row is None and self.exit_col is None, \
-                        '/!\\ ERROR: Invalid input file - more than one exit position'
-                    self.exit_row, self.exit_col = r, c
+                elif grid_data[r][c] == self.GOAL_TILE:
+                    assert self.goal_row is None and self.goal_col is None, (
+                        "/!\\ ERROR: Invalid input file - more than one exit position"
+                    )
+                    self.goal_row, self.goal_col = r, c
                     # assume exit is placed on air tile
                     grid_data[r][c] = self.AIR_TILE
-                elif grid_data[r][c] == self.GEM_TILE:
-                    gem_positions.append((r, c))
-                    # assume all gems are placed on air tiles
-                    grid_data[r][c] = self.AIR_TILE
-        self.n_gems = len(gem_positions)
-        assert self.init_row is not None and self.init_col is not None, \
-            '/!\\ ERROR: Invalid input file - No player initial position'
-        assert self.exit_row is not None and self.exit_col is not None, \
-            '/!\\ ERROR: Invalid input file - No exit position'
+                elif grid_data[r][c] == self.DRAWBRIDGE:
+                    trap_positions.append((r, c))
+                elif grid_data[r][c] == self.TRAPDOOR:
+                    trap_positions.append((r, c))
+                elif grid_data[r][c] == self.LEVER:
+                    lever_positions.append((r, c))
 
-        assert len(grid_data) == self.n_rows, f'/!\\ ERROR: Invalid input file - incorrect number of map rows'
+        assert self.init_row is not None and self.init_col is not None, (
+            "/!\\ ERROR: Invalid input file - No player initial position"
+        )
+        assert self.goal_row is not None and self.goal_col is not None, (
+            "/!\\ ERROR: Invalid input file - No exit position"
+        )
 
-        self.gem_positions = gem_positions
+        # Store schematic data if available
+        self.schematic_data = schematic_data if schematic_data else None
+        
+        # Map lever positions to trap positions
+        if self.schematic_data:
+            # Use schematic-based mapping
+            lever_map_positions = self._create_schematic_mapping(lever_positions, trap_positions)
+        else:
+            # Fallback to position-based mapping (order of appearance)
+            assert len(lever_positions) == len(trap_positions), (
+                f"/!\\ ERROR: Number of levers ({len(lever_positions)}) must match number of traps ({len(trap_positions)})"
+            )
+            lever_map_positions = {}
+            for i, lever_position in enumerate(lever_positions):
+                lever_map_positions[lever_position] = trap_positions[i]
+
+        self.lever_positions = lever_positions
+        self.lever_map_positions = lever_map_positions
+        self.trap_positions = [
+            lever_map_positions[lever_position] for lever_position in lever_positions
+        ]
+
+        # Create lever-trap mapping grid
+        self.lever_trap_mapping = self._create_lever_trap_mapping_grid()
+
+        assert len(grid_data) == self.n_rows, (
+            f"/!\\ ERROR: Invalid input file - incorrect number of map rows"
+        )
         self.grid_data = grid_data
-
-        self.all_gems_tuple = tuple([1 for _ in range(self.n_gems)])    # !!! added
 
     def get_init_state(self):
         """
         Get a state representation instance for the initial state.
         :return: initial state
         """
-        return GameState(self.init_row, self.init_col, tuple(0 for g in self.gem_positions))
+        return GameState(
+            self.init_row, self.init_col, tuple(0 for _ in self.trap_positions)
+        )
 
     def perform_action(self, state, action):
         """
@@ -165,105 +239,130 @@ class GameEnv:
         :param action: an element of self.ACTIONS
         :return: (successful [True/False], next_state [GameState])
         """
-        # check walkable ground prerequisite if applicable
-        if action in (self.WALK_LEFT, self.WALK_RIGHT, self.JUMP) and \
-                self.grid_data[state.row + 1][state.col] not in (self.SOLID_TILE, self.LADDER_TILE):
-            # prerequisite not satisfied - on a walkable surface
+
+        # Check action is valid
+        if (
+            action in (self.WALK_LEFT, self.WALK_RIGHT)
+            and self.grid_data[state.row + 1][state.col] == self.TRAPDOOR
+            and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
+            == 0
+        ):
+            # Cannot walk on a trapdoor that is not locked
             return False, state.deepcopy()
 
-        # get coordinates for next state and clear zone states
-        clear_zone = []
+        elif (
+            action in (self.WALK_LEFT, self.WALK_RIGHT)
+            and self.grid_data[state.row + 1][state.col] == self.DRAWBRIDGE
+            and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
+            == 0
+        ):
+            # Cannot walk on a drawbridge that is closed
+            return False, state.deepcopy()
 
+        elif action in (self.WALK_LEFT, self.WALK_RIGHT) and self.grid_data[
+            state.row + 1
+        ][state.col] not in (
+            self.SOLID_TILE,
+            self.LADDER_TILE,
+            self.DRAWBRIDGE,
+            self.TRAPDOOR,
+        ):
+            # Cannot walk on invalid surface (tiles not listed)
+            return False, state.deepcopy()
+
+        elif (
+            action == self.CLIMB
+            and self.grid_data[state.row][state.col] != self.LADDER_TILE
+        ):
+            # Cannot climb on invalid tile (can only climb on ladders)
+            return False, state.deepcopy()
+
+        elif (
+            action == self.DROP
+            and self.grid_data[state.row + 1][state.col] == self.TRAPDOOR
+            and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
+            == 1
+        ):
+            # Cannot drop through locked trapdoor
+            return False, state.deepcopy()
+
+        elif (
+            action == self.DROP
+            and self.grid_data[state.row + 1][state.col] == self.DRAWBRIDGE
+            and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
+            == 1
+        ):
+            # Cannot drop through open drawbridge
+            return False, state.deepcopy()
+
+        elif action == self.DROP and self.grid_data[state.row + 1][state.col] not in (
+            self.LADDER_TILE,
+            self.AIR_TILE,
+            self.DRAWBRIDGE,
+            self.TRAPDOOR,
+        ):
+            # Cannot drop through invalid tile (tiles not listed)
+            return False, state.deepcopy()
+
+        next_trap_status = list(state.trap_status)
+        # Get coordinates for next state
         if action == self.WALK_LEFT:
-            next_row, next_col = (state.row, state.col - 1)         # left 1
+            next_row, next_col = (state.row, state.col - 1)  # left
 
         elif action == self.WALK_RIGHT:
-            next_row, next_col = (state.row, state.col + 1)         # right 1
+            next_row, next_col = (state.row, state.col + 1)  # right
 
-        elif action == self.JUMP:
-            next_row, next_col = (state.row - 1, state.col)         # up 1
+        elif action == self.CLIMB:
+            next_row, next_col = (state.row - 1, state.col)  # up
 
-        elif action == self.GLIDE_LEFT_1:
-            clear_zone.append((state.row, state.col - 1))           # left 1
-            clear_zone.append((state.row + 1, state.col))           # down 1
-            next_row, next_col = (state.row + 1, state.col - 1)     # left 1, down 1
+        elif action == self.DROP:
+            next_row, next_col = (state.row + 1, state.col)  # down
 
-        elif action == self.GLIDE_LEFT_2:
-            clear_zone.append((state.row, state.col - 1))           # left 1
-            clear_zone.append((state.row, state.col - 2))           # left 2
-            clear_zone.append((state.row + 1, state.col))           # down 1
-            clear_zone.append((state.row + 1, state.col - 1))       # left 1, down 1
-            next_row, next_col = (state.row + 1, state.col - 2)     # left 2, down 1
+        elif action == self.ACTIVATE:  # activate lever
+            # Check if player is on a lever tile
+            # Activate trap if they are on a lever tile
+            next_row, next_col = state.row, state.col
 
-        elif action == self.GLIDE_LEFT_3:
-            clear_zone.append((state.row, state.col - 1))           # left 1
-            clear_zone.append((state.row, state.col - 2))           # left 2
-            clear_zone.append((state.row, state.col - 3))           # left 3
-            clear_zone.append((state.row + 1, state.col))           # down 1
-            clear_zone.append((state.row + 1, state.col - 1))       # left 1, down 1
-            clear_zone.append((state.row + 1, state.col - 2))       # left 2, down 1
-            next_row, next_col = (state.row + 1, state.col - 3)     # left 3, down 1
+            if (state.row, state.col) in self.lever_map_positions.keys():
+                # Player is on a lever
+                trap_pos = self.lever_map_positions[(state.row, state.col)]
 
-        elif action == self.GLIDE_RIGHT_1:
-            clear_zone.append((state.row, state.col + 1))           # right 1
-            clear_zone.append((state.row + 1, state.col))           # down 1
-            next_row, next_col = (state.row + 1, state.col + 1)     # right 1, down 1
-
-        elif action == self.GLIDE_RIGHT_2:
-            clear_zone.append((state.row, state.col + 1))           # right 1
-            clear_zone.append((state.row, state.col + 2))           # right 2
-            clear_zone.append((state.row + 1, state.col))           # down 1
-            clear_zone.append((state.row + 1, state.col + 1))       # right 1, down 1
-            next_row, next_col = (state.row + 1, state.col + 2)     # right 2, down 1
-
-        elif action == self.GLIDE_RIGHT_3:
-            clear_zone.append((state.row, state.col + 1))           # right 1
-            clear_zone.append((state.row, state.col + 2))           # right 2
-            clear_zone.append((state.row, state.col + 3))           # right 3
-            clear_zone.append((state.row + 1, state.col))           # down 1
-            clear_zone.append((state.row + 1, state.col + 1))       # right 1, down 1
-            clear_zone.append((state.row + 1, state.col + 2))       # right 2, down 1
-            next_row, next_col = (state.row + 1, state.col + 3)     # right 3, down 1
-
-        elif action == self.DROP_1:
-            next_row, next_col = (state.row + 1, state.col)         # down 1
-
-        elif action == self.DROP_2:
-            clear_zone.append((state.row + 1, state.col))           # down 1
-            next_row, next_col = (state.row + 2, state.col)         # down 2
-
-        elif action == self.DROP_3:
-            clear_zone.append((state.row + 1, state.col))           # down 1
-            clear_zone.append((state.row + 2, state.col))           # down 2
-            next_row, next_col = (state.row + 3, state.col)         # down 3
+                if state.trap_status[self.trap_positions.index(trap_pos)] == 0:
+                    # Activate lever
+                    next_trap_status[
+                        self.trap_positions.index(
+                            self.lever_map_positions[(state.row, state.col)]
+                        )
+                    ] = 1
+                else:
+                    # Deactivate lever
+                    next_trap_status[
+                        self.trap_positions.index(
+                            self.lever_map_positions[(state.row, state.col)]
+                        )
+                    ] = 0
 
         else:
-            assert False, '/!\\ ERROR: Invalid action given to perform_action()'
+            assert False, "/!\\ ERROR: Invalid action given to perform_action()"
 
-        # check that next_state is within bounds
+        # Check that next_state is within bounds
         if not (0 <= next_row < self.n_rows and 0 <= next_col < self.n_cols):
-            # next state is out of bounds
+            # Next state is out of bounds
             return False, state.deepcopy()
 
-        # check for a collision (with either next state or a clear zone state)
-        if self.grid_data[next_row][next_col] in (self.SOLID_TILE, self.LAVA_TILE):
-            # next state results in collision
+        # Check for a collision (with either next state or a closed drawbridge)
+        if self.grid_data[next_row][next_col] is self.SOLID_TILE:
+            # Collision with a solid tile
             return False, state.deepcopy()
-        for (r, c) in clear_zone:
-            if self.grid_data[r][c] in (self.SOLID_TILE, self.LAVA_TILE):
-                # moving through clear zone to next state results in collision
-                return False, state.deepcopy()
+        elif (
+            self.grid_data[next_row + 1][next_col] is self.DRAWBRIDGE
+            and next_trap_status[self.trap_positions.index((next_row + 1, next_col))]
+            == 0
+        ):
+            # Collision with a closed drawbridge
+            return False, state.deepcopy()
 
-        # check if a gem is collected
-        if (next_row, next_col) in self.gem_positions and \
-                state.gem_status[self.gem_positions.index((next_row, next_col))] == 0:
-            next_gem_status = list(state.gem_status)
-            next_gem_status[self.gem_positions.index((next_row, next_col))] = 1
-            next_gem_status = tuple(next_gem_status)
-        else:
-            next_gem_status = state.gem_status
-
-        return True, GameState(next_row, next_col, next_gem_status)
+        return True, GameState(next_row, next_col, tuple(next_trap_status))
 
     def is_solved(self, state):
         """
@@ -271,39 +370,146 @@ class GameEnv:
         :param state: current GameState
         :return: True if solved, False otherwise
         """
-        all_gems_collected = True
-        for g in state.gem_status:
-            if g == 0:
-                all_gems_collected = False
-        return state.row == self.exit_row and state.col == self.exit_col and all_gems_collected
-
-    def is_game_over(self, state):
-        """
-        Check if a game over situation has occurred (i.e. player has landed on a lava tile)
-        :param state: current GameState
-        :return: True if game over, False otherwise
-        """
-        assert 0 < state.row < self.n_rows - 1 and 0 < state.col < self.n_cols - 1, '!!! invalid player coordinates !!!'
-        return self.grid_data[state.row + 1][state.col] == self.LAVA_TILE
+        return state.row == self.goal_row and state.col == self.goal_col
 
     def render(self, state):
         """
         Render the map's current state to terminal
         """
         for r in range(self.n_rows):
-            line = ''
+            line = ""
             for c in range(self.n_cols):
                 if state.row == r and state.col == c:
-                    # current tile is player
-                    line += self.grid_data[r][c] + 'P' + self.grid_data[r][c]
-                elif self.exit_row == r and self.exit_col == c:
-                    # current tile is exit
-                    line += self.grid_data[r][c] + 'E' + self.grid_data[r][c]
-                elif (r, c) in self.gem_positions and \
-                        state.gem_status[self.gem_positions.index((r, c))] == 0:
-                    # current tile is an uncollected gem
+                    # Current tile is player
+                    line += self.grid_data[r][c] + "P" + self.grid_data[r][c]
+                elif self.goal_row == r and self.goal_col == c:
+                    # Current tile is exit
                     line += self.grid_data[r][c] + 'G' + self.grid_data[r][c]
                 else:
                     line += self.grid_data[r][c] * 3
             print(line)
         print('\n' * 2)
+
+    def _create_schematic_mapping(self, lever_positions, trap_positions):
+        """
+        Create lever-to-trap mapping based on schematic data.
+        
+        Args:
+            lever_positions: List of lever coordinate tuples
+            trap_positions: List of trap coordinate tuples
+            
+        Returns:
+            dict: Mapping from lever positions to trap positions
+        """
+        lever_map_positions = {}
+        
+        # Create ID lookup from schematic (only if schematic exists)
+        if not self.schematic_data:
+            return {}
+            
+        id_to_positions = {}
+        for r in range(len(self.schematic_data)):
+            for c in range(len(self.schematic_data[r])):
+                char = self.schematic_data[r][c]
+                if char.isdigit() and char != '0':
+                    id_val = int(char)
+                    if id_val not in id_to_positions:
+                        id_to_positions[id_val] = []
+                    id_to_positions[id_val].append((r, c))
+        
+        # Map levers to traps based on shared IDs in schematic
+        for lever_pos in lever_positions:
+            lever_row, lever_col = lever_pos
+            if lever_row < len(self.schematic_data) and lever_col < len(self.schematic_data[lever_row]):
+                schematic_char = self.schematic_data[lever_row][lever_col]
+                if schematic_char.isdigit() and schematic_char != '0':
+                    # Find the trap with the same ID
+                    for trap_pos in trap_positions:
+                        trap_row, trap_col = trap_pos
+                        if (trap_row < len(self.schematic_data) and 
+                            trap_col < len(self.schematic_data[trap_row]) and
+                            self.schematic_data[trap_row][trap_col] == schematic_char):
+                            lever_map_positions[lever_pos] = trap_pos
+                            break
+        
+        # Fallback to position-based mapping for unmapped levers
+        unmapped_levers = [lev for lev in lever_positions if lev not in lever_map_positions]
+        unmapped_traps = [trap for trap in trap_positions if trap not in lever_map_positions.values()]
+        
+        for i, lever_pos in enumerate(unmapped_levers):
+            if i < len(unmapped_traps):
+                lever_map_positions[lever_pos] = unmapped_traps[i]
+        
+        return lever_map_positions
+
+    def _create_lever_trap_mapping_grid(self):
+        """
+        Create a mapping grid where lever-trap pairs share the same ID number.
+        
+        Returns:
+            2D list where non-zero values indicate lever-trap relationships
+        """
+        # Initialize mapping grid with zeros
+        mapping_grid = [[0 for _ in range(self.n_cols)] for _ in range(self.n_rows)]
+        
+        # Assign unique IDs to each lever-trap pair
+        pair_id = 1
+        
+        for lever_pos in self.lever_positions:
+            trap_pos = self.lever_map_positions[lever_pos]
+            
+            # Assign same ID to both lever and trap positions
+            mapping_grid[lever_pos[0]][lever_pos[1]] = pair_id
+            mapping_grid[trap_pos[0]][trap_pos[1]] = pair_id
+            
+            pair_id += 1
+        
+        return mapping_grid
+
+    def get_lever_trap_id(self, row, col):
+        """
+        Get the lever-trap pair ID for a given position.
+        
+        Args:
+            row, col: Grid coordinates
+            
+        Returns:
+            int: Pair ID (0 if position not part of any lever-trap system)
+        """
+        if 0 <= row < self.n_rows and 0 <= col < self.n_cols:
+            return self.lever_trap_mapping[row][col]
+        return 0
+
+    def get_related_positions(self, row, col):
+        """
+        Get all positions related to the given position via lever-trap relationships.
+        
+        Args:
+            row, col: Grid coordinates
+            
+        Returns:
+            list: List of (row, col) tuples that are connected via lever-trap system
+        """
+        pair_id = self.get_lever_trap_id(row, col)
+        if pair_id == 0:
+            return []
+        
+        related_positions = []
+        for r in range(self.n_rows):
+            for c in range(self.n_cols):
+                if self.lever_trap_mapping[r][c] == pair_id:
+                    related_positions.append((r, c))
+        
+        return related_positions
+
+    def is_lever_trap_position(self, row, col):
+        """
+        Check if a position is part of any lever-trap system.
+        
+        Args:
+            row, col: Grid coordinates
+            
+        Returns:
+            bool: True if position is a lever or trap
+        """
+        return self.get_lever_trap_id(row, col) != 0
