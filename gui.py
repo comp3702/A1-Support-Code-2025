@@ -21,6 +21,8 @@ class GUI:
     TWEEN_DELAY = 0.005
 
     def __init__(self, game_env):
+        self.lever_images = None
+        self.trap_images = None
         self.game_env = game_env
         init_state = game_env.get_init_state()
         self.last_state = init_state
@@ -53,26 +55,26 @@ class GUI:
 
         # Load images
         if small_mode:
-            self.background = tk.PhotoImage(file="gui_assets/background_small.png")
+            self.background = tk.PhotoImage(file="gui_assets/background_wall_small.png")
             self.tile_player = tk.PhotoImage(
-                file="gui_assets/game_tile_dragon_small.png"
+                file="gui_assets/player_mouse_small.png"
             )
-            self.tile_exit = tk.PhotoImage(file="gui_assets/game_tile_exit_small.png")
+            self.tile_cheese = tk.PhotoImage(file="gui_assets/goal_cheese_small.png")
             self.tile_ladder = tk.PhotoImage(
-                file="gui_assets/game_tile_ladder_small.png"
+                file="gui_assets/ladder_small.png"
             )
-            self.tile_stone = tk.PhotoImage(file="gui_assets/game_tile_stone_small.png")
+            self.tile_stone = tk.PhotoImage(file="gui_assets/solid_wall_small.png")
             self.tile_open_drawbridge = tk.PhotoImage(
-                file="gui_assets/drawbridge_open_small.png"
+                file="gui_assets/open_drawbridge_small.png"
             )
             self.tile_closed_drawbridge = tk.PhotoImage(
-                file="gui_assets/drawbridge_open_small.png"
+                file="gui_assets/closed_drawbridge_small.png"
             )
             self.tile_open_trapdoor = tk.PhotoImage(
-                file="gui_assets/trapdoor_open_small.png"
+                file="gui_assets/open_trapdoor_small.png"
             )
             self.tile_closed_trapdoor = tk.PhotoImage(
-                file="gui_assets/trapdoor_closed_small.png"
+                file="gui_assets/closed_trapdoor_small.png"
             )
             self.tile_open_lever_1 = tk.PhotoImage(
                 file="gui_assets/lever_1_closed_small.png"
@@ -88,20 +90,20 @@ class GUI:
             )
 
         else:
-            self.background = tk.PhotoImage(file="gui_assets/background.png")
-            self.tile_player = tk.PhotoImage(file="gui_assets/game_tile_dragon.png")
-            self.tile_exit = tk.PhotoImage(file="gui_assets/game_tile_exit.png")
-            self.tile_ladder = tk.PhotoImage(file="gui_assets/game_tile_ladder.png")
-            self.tile_stone = tk.PhotoImage(file="gui_assets/game_tile_stone.png")
+            self.background = tk.PhotoImage(file="gui_assets/background_wall.png")
+            self.tile_player = tk.PhotoImage(file="gui_assets/player_mouse.png")
+            self.tile_cheese = tk.PhotoImage(file="gui_assets/goal_cheese.png")
+            self.tile_ladder = tk.PhotoImage(file="gui_assets/ladder.png")
+            self.tile_stone = tk.PhotoImage(file="gui_assets/solid_wall.png")
             self.tile_open_drawbridge = tk.PhotoImage(
-                file="gui_assets/drawbridge_open.png"
+                file="gui_assets/open_drawbridge.png"
             )
             self.tile_closed_drawbridge = tk.PhotoImage(
-                file="gui_assets/drawbridge_closed.png"
+                file="gui_assets/closed_drawbridge.png"
             )
-            self.tile_open_trapdoor = tk.PhotoImage(file="gui_assets/trapdoor_open.png")
+            self.tile_open_trapdoor = tk.PhotoImage(file="gui_assets/open_trapdoor.png")
             self.tile_closed_trapdoor = tk.PhotoImage(
-                file="gui_assets/trapdoor_closed.png"
+                file="gui_assets/closed_trapdoor.png"
             )
             self.tile_open_lever_1 = tk.PhotoImage(file="gui_assets/lever_1_open.png")
             self.tile_closed_lever_1 = tk.PhotoImage(
@@ -135,21 +137,7 @@ class GUI:
                         image=self.tile_ladder,
                         anchor=tk.NW,
                     )
-                elif self.game_env.grid_data[r][c] == GameEnv.AIR_TILE:
-                    self.canvas.create_image(
-                        (c * self.tile_w),
-                        (r * self.tile_h),
-                        image=self.background,
-                        anchor=tk.NW,
-                    )
-                elif self.game_env.grid_data[r][c] == GameEnv.TRAPDOOR:
-                    self.canvas.create_image(
-                        (c * self.tile_w),
-                        (r * self.tile_h),
-                        image=self.background,
-                        anchor=tk.NW,
-                    )
-                elif self.game_env.grid_data[r][c] == GameEnv.DRAWBRIDGE:
+                elif self.game_env.grid_data[r][c] in (GameEnv.AIR_TILE, GameEnv.TRAPDOOR, GameEnv.DRAWBRIDGE, GameEnv.LEVER):
                     self.canvas.create_image(
                         (c * self.tile_w),
                         (r * self.tile_h),
@@ -160,7 +148,7 @@ class GUI:
                     self.canvas.create_image(
                         (c * self.tile_w),
                         (r * self.tile_h),
-                        image=self.tile_exit,
+                        image=self.tile_cheese,
                         anchor=tk.NW,
                     )
 
