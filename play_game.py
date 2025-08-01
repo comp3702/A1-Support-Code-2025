@@ -15,9 +15,7 @@ The script takes 1 argument:
 When prompted for an action, type one of the available action strings (e.g. wr, wl, etc) and press enter to perform the
 entered action.
 
-COMP3702 Assignment 1 "Dragon Game" Support Code
-
-Last updated by njc 07/08/23
+COMP3702 Assignment 1 "Cheese Hunter" Support Code, 2025
 """
 
 
@@ -37,7 +35,7 @@ def main(arglist):
 
     print('Available actions: wl, wr, c, d, a, q[quit]')
 
-    # run simulation
+    # Run simulation
     while True:
         gui.update_state(persistent_state)
         print('Choose an action >>', end=' ')
@@ -52,7 +50,7 @@ def main(arglist):
         total_cost += game_env.ACTION_COST[a]
         success, persistent_state = game_env.perform_action(persistent_state, a)
         if not success:
-            print('Collision occurred.')
+            print('Collision occurred or invalid action. Please try a different action.')
         if game_env.is_solved(persistent_state):
             gui.update_state(persistent_state)
             print(f'Level completed with total cost of {round(total_cost, 1)}!')

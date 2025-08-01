@@ -1,17 +1,15 @@
 """
 game_state.py
 
-This file contains a class representing an Untitled Dragon Game state. You should make use of this class in your solver.
+This file contains a class representing a Cheese Hunter state. You should make use of this class in your solver.
 
-COMP3702 Assignment 1 "Dragon Game" Support Code
-
-Last updated by njc 07/08/23
+COMP3702 Assignment 1 "Cheese Hunter" Support Code, 2025
 """
 
 
 class GameState:
     """
-    Instance of an Untitled Dragon Game state. row and col represent the current player position. gem_status is 1 for
+    Instance of a Cheese Hunter state. row and col represent the current player position. gem_status is 1 for
     each collected gem, and 0 for each remaining gem.
 
     You may use this class and its functions. You may add your own code to this class (e.g. get_successors function,
@@ -38,6 +36,3 @@ class GameState:
 
     def deepcopy(self):
         return GameState(self.row, self.col, self.trap_status)
-
-
-

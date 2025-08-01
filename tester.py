@@ -10,9 +10,7 @@ Tester script.
 
 Use this script to debug and/or evaluate your solution. You may modify this file if desired.
 
-COMP3702 Assignment 1 "Dragon Game" Support Code
-
-Last updated by njc 07/08/23
+COMP3702 Assignment 1 "Cheese Hunter" Support Code, 2025
 """
 
 VISUALISE_TIME_PER_STEP = 0.7
@@ -36,7 +34,7 @@ def main(arglist):
         print_usage()
         return
 
-    # load environment
+    # Load environment
     testcase_file = arglist[1]
     game_env = GameEnv(testcase_file)
 
@@ -50,7 +48,7 @@ def main(arglist):
     else:
         visualise = False
 
-    # for small environments, take average time over multiple trials
+    # For small environments, take average time over multiple trials
     if game_env.ucs_time_min_tgt < 0.01:
         trials = 50
     elif game_env.ucs_time_min_tgt < 0.1:
@@ -58,7 +56,7 @@ def main(arglist):
     else:
         trials = 1
 
-    # run search
+    # Run search
     actions = None
     t0 = time.time()
     for _ in range(trials):
@@ -70,7 +68,7 @@ def main(arglist):
             actions = solver.search_a_star()
     run_time = (time.time() - t0) / trials
 
-    # evaluate solution
+    # Evaluate solution
     control_env = ControlEnv(testcase_file)
     persistent_state = control_env.get_init_state()
     total_cost = 0.0
