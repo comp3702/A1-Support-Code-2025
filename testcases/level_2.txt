@@ -1,0 +1,26 @@
+# num rows, num cols
+7, 10
+# cost targets (min score target, max score target)
+18.4, 9.2
+# nodes targets (min score target, max score target)
+20, 13
+# UCS run time targets (min score target, max score target)
+0.0020, 0.0012
+# A* run time targets (min score target, max score target)
+0.0014, 0.0007
+# grid data
+XXXXXXXXXX
+X        X
+X XTX=XX=X
+X  GX=XL=X
+XXXXX=XXXX
+XP   =   X
+XXXXXXXXXX
+# Schematic
+
+
+   1
+       1
+
+
+
