@@ -62,8 +62,12 @@ gem_status is a tuple of length n_gems, where each element is 1 or 0.
 
 **play_game.py**
 
+
 This file contains a script which launches an interactive game session when run. Becoming familiar with the game
 mechanics may be helpful in designing your solution.
+
+To start playing, try:
+`python play_game.py testcases/L1.txt`
 
 The script takes 1 command line argument:
 - input_filename, which must be a valid testcase file (e.g. one of the provided files in the testcases directory)
@@ -109,3 +113,32 @@ grid_data (row num_rows)
 ~~~~~
 
 Testcase files can contain comments, starting with '#', which are ignored by the input file parser.
+
+
+### Lever-Trap System
+
+For levels containing levers (L) and traps (T for trapdoors, D for drawbridges), the game uses a **schematic-based mapping system**:
+
+**Level Format:**
+```
+# Standard level data as above
+grid_data (row 1)
+...
+grid_data (row num_rows)
+# Schematic
+schematic_row_1
+...
+schematic_row_num_rows
+```
+
+**How It Works:**
+- The schematic section uses numeric IDs (1, 2, 3, etc.) to connect levers to traps
+- Positions with the same ID number are connected - activating a lever toggles its paired trap
+- Example: If the schematic has '1' at position (2,5) and '1' at position (7,3), then the lever at (2,5) controls the trap at (7,3)
+
+Available Methods:
+- `env.get_lever_trap_id(row, col)` - Get the connection ID for a position (0 if not connected)
+- `env.get_related_positions(row, col)` - Get all positions connected to this one
+- `env.is_lever_trap_position(row, col)` - Check if position is part of lever-trap system
+
+These methods can be useful for pathfinding algorithms to understand trap dependencies (perhaps).
