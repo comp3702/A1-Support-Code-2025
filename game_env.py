@@ -193,20 +193,13 @@ class GameEnv:
         # Store schematic data if available
         self.schematic_data = schematic_data if schematic_data else None
 
-        # Map lever positions to trap positions
-        if self.schematic_data:
-            # Use schematic-based mapping
-            lever_map_positions = self._create_schematic_mapping(
-                lever_positions, trap_positions
-            )
-        else:
-            # Fallback to position-based mapping (order of appearance)
-            assert len(lever_positions) == len(trap_positions), (
-                f"/!\\ ERROR: Number of levers ({len(lever_positions)}) must match number of traps ({len(trap_positions)})"
-            )
-            lever_map_positions = {}
-            for i, lever_position in enumerate(lever_positions):
-                lever_map_positions[lever_position] = trap_positions[i]
+        # Map lever positions to trap positions using schematic data
+        assert self.schematic_data is not None, (
+            "/!\\ ERROR: Lever-trap mapping requires schematic data in level file"
+        )
+        lever_map_positions = self._create_schematic_mapping(
+            lever_positions, trap_positions
+        )
 
         self.lever_positions = lever_positions
         self.lever_map_positions = lever_map_positions
@@ -403,20 +396,6 @@ class GameEnv:
         """
         lever_map_positions = {}
 
-        # Create ID lookup from schematic (only if schematic exists)
-        if not self.schematic_data:
-            return {}
-
-        id_to_positions = {}
-        for r in range(len(self.schematic_data)):
-            for c in range(len(self.schematic_data[r])):
-                char = self.schematic_data[r][c]
-                if char.isdigit() and char != "0":
-                    id_val = int(char)
-                    if id_val not in id_to_positions:
-                        id_to_positions[id_val] = []
-                    id_to_positions[id_val].append((r, c))
-
         # Map levers to traps based on shared IDs in schematic
         for lever_pos in lever_positions:
             lever_row, lever_col = lever_pos
@@ -437,17 +416,11 @@ class GameEnv:
                             lever_map_positions[lever_pos] = trap_pos
                             break
 
-        # Fallback to position-based mapping for unmapped levers
-        unmapped_levers = [
-            lev for lev in lever_positions if lev not in lever_map_positions
-        ]
-        unmapped_traps = [
-            trap for trap in trap_positions if trap not in lever_map_positions.values()
-        ]
-
-        for i, lever_pos in enumerate(unmapped_levers):
-            if i < len(unmapped_traps):
-                lever_map_positions[lever_pos] = unmapped_traps[i]
+        # Ensure all levers are mapped
+        assert len(lever_map_positions) == len(lever_positions), (
+            f"/!\\ ERROR: Not all levers could be mapped via schematic. "
+            f"Mapped {len(lever_map_positions)} of {len(lever_positions)} levers."
+        )
 
         return lever_map_positions
 
