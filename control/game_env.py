@@ -3,20 +3,18 @@ from control.game_state import GameState
 """
 game_env.py
 
-This file contains a class representing an Untitled Dragon Game environment. You should make use of this class in your
+This file contains a class representing a Cheese Hunter environment. You should make use of this class in your
 solver.
 
-COMP3702 Assignment 1 "Dragon Game" Support Code
-
-Last updated by njc 07/08/23
+COMP3702 Assignment 1 "CheeseHunter" Support Code, 2025
 """
 
 
 class GameEnv:
     """
-    Instance of an Untitled Dragon Game environment. Stores the dimensions of the environment, initial player position,
-    exit position, number of gems and position of each gem, time limit, cost target, the tile type of each grid
-    position, and a list of all available actions.
+    Instance of a Cheese Hunter environment. Stores the dimensions of the environment, initial player position,
+    goal position, lever positions, trap positions, mapping of levers to traps, time limit, cost target,
+    the tile type of each grid position, and a list of all available actions.
 
     The grid is indexed top to bottom, left to right (i.e. the top left corner has coordinates (0, 0) and the bottom
     right corner has coordinates (n_rows-1, n_cols-1)).
@@ -84,7 +82,7 @@ class GameEnv:
                 reading_schematic = True
                 continue
 
-            # skip annotations in input file
+            # Skip annotations in input file
             if line.strip().startswith("#"):
                 continue
 
@@ -220,7 +218,7 @@ class GameEnv:
         self.lever_trap_mapping = self._create_lever_trap_mapping_grid()
 
         assert len(grid_data) == self.n_rows, (
-            f"/!\\ ERROR: Invalid input file - incorrect number of map rows"
+            "/!\\ ERROR: Invalid input file - incorrect number of map rows"
         )
         self.grid_data = grid_data
 

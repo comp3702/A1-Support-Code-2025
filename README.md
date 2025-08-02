@@ -1,14 +1,15 @@
 # Assignment 1 Support Code
 
-This is the support code for COMP3702 Assignment 1 "Dragon Game".
+This is the support code for COMP3702 Assignment 1 "Cheese Hunter", 2025.
 
 The following files are provided:
 
 **game_env.py**
 
-This file contains a class representing an Untitled Dragon Game level environment, storing the dimensions of the
-environment, initial player position, exit position, number of gems and position of each gem, targets for path cost, run
-time and number of nodes expanded, the tile type of each grid position, and a list of all available actions.
+This file contains a class representing a Cheese Hunter level environment, storing the dimensions of the
+environment, initial player position, goal position, lever positions, trap positions, mapping of levers to 
+traps, targets for path cost, run time and number of nodes expanded, the tile type of each grid position,
+and a list of all available actions.
 
 This file contains a number of functions which will be useful in developing your solver:
 
@@ -41,13 +42,6 @@ True (solved) or False (not solved).
 
 
 ~~~~~
-is_game_over(state)
-~~~~~
-Checks whether the given 'state' (a GameState object) results in Game Over (i.e. player has landed on a lava tile).
-Returns True (Game Over) or False (not Game Over).
-
-
-~~~~~
 render(state)
 ~~~~~
 Prints a graphical representation of the given 'state' (a GameState object) to the terminal - you may find this useful 
@@ -56,7 +50,7 @@ for debugging.
 
 **game_state.py**
 
-This file contains a class representing an Untitled Dragon Game state, storing the position of the player and the status
+This file contains a class representing a Cheese Hunter state, storing the position of the player and the status
 of all gems in the level (1 for collected, 0 for remaining).
 
 ~~~~~

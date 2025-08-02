@@ -9,9 +9,7 @@ This file is a template you should use to implement your solution.
 You should implement each of the method stubs below. You may add additional methods and/or classes to this file if you 
 wish. You may also create additional source files and import to this file if you wish.
 
-COMP3702 Assignment 1 "Dragon Game" Support Code
-
-Last updated by njc 07/08/23
+COMP3702 Assignment 1 "Cheese Hunter" Support Code, 2025
 """
 
 

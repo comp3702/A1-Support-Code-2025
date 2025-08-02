@@ -4,11 +4,9 @@ import time
 from game_env import GameEnv
 
 """
-Graphical Visualiser for Dragon Game. You may modify this file if desired.
+Graphical Visualiser for Cheese Hunter. You may modify this file if desired.
 
-COMP3702 Assignment 1 "Dragon Game" Support Code
-
-Last updated by njc 15/08/22
+COMP3702 Assignment 1 "Cheese Hunter" Support Code, 2025
 """
 
 
@@ -23,13 +21,11 @@ class GUI:
     TWEEN_DELAY = 0.005
 
     def __init__(self, game_env):
-        self.lever_images = None
-        self.trap_images = None
         self.game_env = game_env
         init_state = game_env.get_init_state()
         self.last_state = init_state
 
-        # choose small or large mode
+        # Choose small or large mode
         self.window = tk.Tk()
         screen_width, screen_height = (
             self.window.winfo_screenwidth(),
@@ -46,7 +42,7 @@ class GUI:
             self.tile_w = self.TILE_W
             self.tile_h = self.TILE_H
 
-        self.window.title("Dragon Game Visualiser")
+        self.window.title("Cheese Hunter Visualiser")
         self.window.geometry(
             f"{self.game_env.n_cols * self.tile_w}x{self.game_env.n_rows * self.tile_h}"
         )
@@ -55,10 +51,10 @@ class GUI:
         self.canvas.configure(bg="white")
         self.canvas.pack(fill="both", expand=True)
 
-        # load images
+        # Load images
         if small_mode:
             self.background = tk.PhotoImage(file="gui_assets/background_small.png")
-            self.tile_dragon = tk.PhotoImage(
+            self.tile_player = tk.PhotoImage(
                 file="gui_assets/game_tile_dragon_small.png"
             )
             self.tile_exit = tk.PhotoImage(file="gui_assets/game_tile_exit_small.png")
@@ -93,7 +89,7 @@ class GUI:
 
         else:
             self.background = tk.PhotoImage(file="gui_assets/background.png")
-            self.tile_dragon = tk.PhotoImage(file="gui_assets/game_tile_dragon.png")
+            self.tile_player = tk.PhotoImage(file="gui_assets/game_tile_dragon.png")
             self.tile_exit = tk.PhotoImage(file="gui_assets/game_tile_exit.png")
             self.tile_ladder = tk.PhotoImage(file="gui_assets/game_tile_ladder.png")
             self.tile_stone = tk.PhotoImage(file="gui_assets/game_tile_stone.png")
@@ -116,7 +112,7 @@ class GUI:
                 file="gui_assets/lever_2_closed.png"
             )
 
-        # draw background (all permanent features, i.e. everything except dragon and gems)
+        # Draw background (all permanent features, i.e. everything except player, traps, and levers)
         for r in range(self.game_env.n_rows):
             for c in range(self.game_env.n_cols):
                 if self.game_env.grid_data[r][c] == GameEnv.SOLID_TILE:
@@ -139,28 +135,27 @@ class GUI:
                         image=self.tile_ladder,
                         anchor=tk.NW,
                     )
-                if self.game_env.grid_data[r][c] == GameEnv.AIR_TILE:
+                elif self.game_env.grid_data[r][c] == GameEnv.AIR_TILE:
                     self.canvas.create_image(
                         (c * self.tile_w),
                         (r * self.tile_h),
                         image=self.background,
                         anchor=tk.NW,
                     )
-                if self.game_env.grid_data[r][c] == GameEnv.TRAPDOOR:
+                elif self.game_env.grid_data[r][c] == GameEnv.TRAPDOOR:
                     self.canvas.create_image(
                         (c * self.tile_w),
                         (r * self.tile_h),
                         image=self.background,
                         anchor=tk.NW,
                     )
-                if self.game_env.grid_data[r][c] == GameEnv.DRAWBRIDGE:
+                elif self.game_env.grid_data[r][c] == GameEnv.DRAWBRIDGE:
                     self.canvas.create_image(
                         (c * self.tile_w),
                         (r * self.tile_h),
                         image=self.background,
                         anchor=tk.NW,
                     )
-
                 if r == self.game_env.goal_row and c == self.game_env.goal_col:
                     self.canvas.create_image(
                         (c * self.tile_w),
@@ -169,26 +164,13 @@ class GUI:
                         anchor=tk.NW,
                     )
 
-        # draw dragon position for initial state
-        self.dragon_image = None
-        self.draw_dragon(init_state.row, init_state.col)
+        # Draw player for initial state
+        self.player_image = None
+        self.draw_player(init_state.row, init_state.col)
 
-        # Draw background before levers and trap assets
-        for lever in self.game_env.lever_positions:
-            self.canvas.create_image(
-                (lever[1] * self.tile_w),
-                (lever[0] * self.tile_h),
-                image=self.background,
-                anchor=tk.NW,
-            )
-        for trap in self.game_env.trap_positions:
-            self.canvas.create_image(
-                (trap[1] * self.tile_w),
-                (trap[0] * self.tile_h),
-                image=self.background,
-                anchor=tk.NW,
-            )
-
+        # Draw traps and levers for inital state
+        self.lever_images = None
+        self.trap_images = None
         self.draw_traps_and_levers(init_state)
 
         self.window.update()
@@ -204,22 +186,22 @@ class GUI:
 
         self.draw_traps_and_levers(state)
 
-        # Remove and re-draw dragon
-        self.canvas.delete(self.dragon_image)
-        self.draw_dragon(state.row, state.col)
+        # Remove and re-draw player
+        self.canvas.delete(self.player_image)
+        self.draw_player(state.row, state.col)
 
-        # Tween dragon to new position
+        # Tween player to new position
         for i in range(1, self.TWEEN_STEPS + 1):
             time.sleep(self.TWEEN_DELAY)
-            self.canvas.delete(self.dragon_image)
+            self.canvas.delete(self.player_image)
             r1 = self.last_state.row + (i / self.TWEEN_STEPS) * (
                 state.row - self.last_state.row
             )
             c1 = self.last_state.col + (i / self.TWEEN_STEPS) * (
                 state.col - self.last_state.col
             )
-            # Remove old dragon position, draw new dragon position
-            self.draw_dragon(r1, c1)
+            # Remove old player position, draw new player position
+            self.draw_player(r1, c1)
             self.window.update()
         self.last_state = state
 
@@ -310,10 +292,10 @@ class GUI:
             self.trap_images.append(trap_img)
             self.lever_images.append(lever_img)
 
-    def draw_dragon(self, row, col):
-        self.dragon_image = self.canvas.create_image(
+    def draw_player(self, row, col):
+        self.player_image = self.canvas.create_image(
             (col * self.tile_w),
             (row * self.tile_h),
-            image=self.tile_dragon,
+            image=self.tile_player,
             anchor=tk.NW,
         )
