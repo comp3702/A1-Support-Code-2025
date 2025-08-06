@@ -33,7 +33,7 @@ def main(arglist):
     actions = []
     total_cost = 0
 
-    print('Available actions: wl, wr, c, d, a, q[quit]')
+    print('Available actions: wl, wr, sl, sr, j, c, d, a, q[quit]')
 
     # Run simulation
     while True:

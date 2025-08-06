@@ -48,13 +48,28 @@ class GameEnv:
     CLIMB = "c"
     DROP = "d"
     ACTIVATE = "a"
-    ACTIONS = {WALK_LEFT, WALK_RIGHT, CLIMB, DROP, ACTIVATE}
+    JUMP = "j"
+    SPRINT_LEFT = "sl"
+    SPRINT_RIGHT = "sr"
+    ACTIONS = {
+        WALK_LEFT,
+        WALK_RIGHT,
+        CLIMB,
+        DROP,
+        ACTIVATE,
+        JUMP,
+        SPRINT_LEFT,
+        SPRINT_RIGHT,
+    }
     ACTION_COST = {
         WALK_LEFT: 1.0,
         WALK_RIGHT: 1.0,
         CLIMB: 2.0,
         DROP: 0.5,
         ACTIVATE: 1.0,
+        JUMP: 2.0,
+        SPRINT_LEFT: 1.9,
+        SPRINT_RIGHT: 1.9,
     }
 
     # Perform action return statuses
@@ -224,77 +239,129 @@ class GameEnv:
             self.init_row, self.init_col, tuple(0 for _ in self.trap_positions)
         )
 
+    def check_valid_action(self, state, action):
+        """Check a given action is able to be performed in a given state.
+        :param state: current GameState
+        :param action: an element of self.ACTIONS
+        :return: successful [True/False]
+        """
+        if action in (
+            self.WALK_LEFT,
+            self.WALK_RIGHT,
+            self.SPRINT_LEFT,
+            self.SPRINT_RIGHT,
+            self.JUMP,
+        ):
+            if (
+                self.grid_data[state.row + 1][state.col] == self.TRAPDOOR
+                and state.trap_status[
+                    self.trap_positions.index((state.row + 1, state.col))
+                ]
+                == 0
+            ):
+                # Cannot walk on a trapdoor that is not locked
+                return False
+            elif (
+                self.grid_data[state.row + 1][state.col] == self.DRAWBRIDGE
+                and state.trap_status[
+                    self.trap_positions.index((state.row + 1, state.col))
+                ]
+                == 0
+            ):
+                # Cannot walk on a drawbridge that is closed
+                return False
+            elif self.grid_data[state.row + 1][state.col] == self.LADDER_TILE:
+                if (
+                    action == self.JUMP
+                    and self.grid_data[state.row][state.col] == self.LADDER_TILE
+                ):
+                    # Cannot jump while climbing a ladder
+                    return False
+                else:
+                    # Can walk or sprint on top a ladder
+                    return True
+            elif self.grid_data[state.row + 1][state.col] not in (
+                self.SOLID_TILE,
+                self.DRAWBRIDGE,
+                self.TRAPDOOR,
+            ):
+                # Cannot walk on invalid surface (tiles not listed)
+                return False
+        elif action == self.DROP:
+            if (
+                self.grid_data[state.row + 1][state.col] == self.TRAPDOOR
+                and state.trap_status[
+                    self.trap_positions.index((state.row + 1, state.col))
+                ]
+                == 1
+            ):
+                # Cannot drop through locked trapdoor
+                return False
+            elif (
+                self.grid_data[state.row + 1][state.col] == self.DRAWBRIDGE
+                and state.trap_status[
+                    self.trap_positions.index((state.row + 1, state.col))
+                ]
+                == 1
+            ):
+                # Cannot drop through open drawbridge
+                return False
+            elif self.grid_data[state.row + 1][state.col] not in (
+                self.LADDER_TILE,
+                self.AIR_TILE,
+                self.DRAWBRIDGE,
+                self.TRAPDOOR,
+            ):
+                # Cannot drop through invalid tile (tiles not listed)
+                return False
+        elif (
+            action == self.CLIMB
+            and self.grid_data[state.row][state.col] != self.LADDER_TILE
+        ):
+            # Cannot climb on invalid tile (can only climb on ladders)
+            return False
+
+        return True
+
+    def check_collision(self, next_position, next_trap_status):
+        """Check a given action is able to be performed in a given state.
+        :param next_position: next position of player based on action
+        :param next_trap_status: trap status of new state
+        :return: collision [True/False]
+        """
+        next_row, next_col = next_position
+        # Check that next_state is within bounds
+        if not (0 <= next_row < self.n_rows and 0 <= next_col < self.n_cols):
+            # Next state is out of bounds
+            return True
+
+        # Check for a collision (with either next state or a closed drawbridge)
+        if self.grid_data[next_row][next_col] is self.SOLID_TILE:
+            # Collision with a solid tile
+            return True
+
+        elif (
+            self.grid_data[next_row + 1][next_col] is self.DRAWBRIDGE
+            and next_trap_status[self.trap_positions.index((next_row + 1, next_col))]
+            == 0
+        ):
+            # Collision with a closed drawbridge
+            return True
+
+        return False
+
     def perform_action(self, state, action):
         """
-        Perform the given action on the given state, and return whether the action was successful (i.e. valid and
-        collision free) and the resulting new state.
+        Perform the given action on the given state, and return whether the
+        action was successful (i.e. valid and collision free) and the resulting
+        new state.
         :param state: current GameState
         :param action: an element of self.ACTIONS
         :return: (successful [True/False], next_state [GameState])
         """
 
         # Check action is valid
-        if (
-            action in (self.WALK_LEFT, self.WALK_RIGHT)
-            and self.grid_data[state.row + 1][state.col] == self.TRAPDOOR
-            and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
-            == 0
-        ):
-            # Cannot walk on a trapdoor that is not locked
-            return False, state.deepcopy()
-
-        elif (
-            action in (self.WALK_LEFT, self.WALK_RIGHT)
-            and self.grid_data[state.row + 1][state.col] == self.DRAWBRIDGE
-            and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
-            == 0
-        ):
-            # Cannot walk on a drawbridge that is closed
-            return False, state.deepcopy()
-
-        elif action in (self.WALK_LEFT, self.WALK_RIGHT) and self.grid_data[
-            state.row + 1
-        ][state.col] not in (
-            self.SOLID_TILE,
-            self.LADDER_TILE,
-            self.DRAWBRIDGE,
-            self.TRAPDOOR,
-        ):
-            # Cannot walk on invalid surface (tiles not listed)
-            return False, state.deepcopy()
-
-        elif (
-            action == self.CLIMB
-            and self.grid_data[state.row][state.col] != self.LADDER_TILE
-        ):
-            # Cannot climb on invalid tile (can only climb on ladders)
-            return False, state.deepcopy()
-
-        elif (
-            action == self.DROP
-            and self.grid_data[state.row + 1][state.col] == self.TRAPDOOR
-            and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
-            == 1
-        ):
-            # Cannot drop through locked trapdoor
-            return False, state.deepcopy()
-
-        elif (
-            action == self.DROP
-            and self.grid_data[state.row + 1][state.col] == self.DRAWBRIDGE
-            and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
-            == 1
-        ):
-            # Cannot drop through open drawbridge
-            return False, state.deepcopy()
-
-        elif action == self.DROP and self.grid_data[state.row + 1][state.col] not in (
-            self.LADDER_TILE,
-            self.AIR_TILE,
-            self.DRAWBRIDGE,
-            self.TRAPDOOR,
-        ):
-            # Cannot drop through invalid tile (tiles not listed)
+        if not self.check_valid_action(state, action):
             return False, state.deepcopy()
 
         next_trap_status = list(state.trap_status)
@@ -305,8 +372,17 @@ class GameEnv:
         elif action == self.WALK_RIGHT:
             next_row, next_col = (state.row, state.col + 1)  # right
 
+        elif action == self.SPRINT_LEFT:
+            next_row, next_col = (state.row, state.col - 2)  # left 2
+
+        elif action == self.SPRINT_RIGHT:
+            next_row, next_col = (state.row, state.col + 2)  # right 2
+
+        elif action == self.JUMP:
+            next_row, next_col = (state.row - 1, state.col)  # up (jump)
+
         elif action == self.CLIMB:
-            next_row, next_col = (state.row - 1, state.col)  # up
+            next_row, next_col = (state.row - 1, state.col)  # up (climb)
 
         elif action == self.DROP:
             next_row, next_col = (state.row + 1, state.col)  # down
@@ -338,21 +414,7 @@ class GameEnv:
         else:
             assert False, "/!\\ ERROR: Invalid action given to perform_action()"
 
-        # Check that next_state is within bounds
-        if not (0 <= next_row < self.n_rows and 0 <= next_col < self.n_cols):
-            # Next state is out of bounds
-            return False, state.deepcopy()
-
-        # Check for a collision (with either next state or a closed drawbridge)
-        if self.grid_data[next_row][next_col] is self.SOLID_TILE:
-            # Collision with a solid tile
-            return False, state.deepcopy()
-        elif (
-            self.grid_data[next_row + 1][next_col] is self.DRAWBRIDGE
-            and next_trap_status[self.trap_positions.index((next_row + 1, next_col))]
-            == 0
-        ):
-            # Collision with a closed drawbridge
+        if self.check_collision((next_row, next_col), next_trap_status):
             return False, state.deepcopy()
 
         return True, GameState(next_row, next_col, tuple(next_trap_status))
