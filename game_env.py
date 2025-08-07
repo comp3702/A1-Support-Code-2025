@@ -498,18 +498,16 @@ class GameEnv:
                 self.schematic_data[lever_row]
             ):
                 schematic_char = self.schematic_data[lever_row][lever_col]
-                if schematic_char.isdigit() and schematic_char != "0":
-                    # Find the trap with the same ID
-                    for trap_pos in trap_positions:
-                        trap_row, trap_col = trap_pos
-                        if (
-                            trap_row < len(self.schematic_data)
-                            and trap_col < len(self.schematic_data[trap_row])
-                            and self.schematic_data[trap_row][trap_col]
-                            == schematic_char
-                        ):
-                            lever_map_positions[lever_pos] = trap_pos
-                            break
+                # Find the trap with the same ID
+                for trap_pos in trap_positions:
+                    trap_row, trap_col = trap_pos
+                    if (
+                        trap_row < len(self.schematic_data)
+                        and trap_col < len(self.schematic_data[trap_row])
+                        and self.schematic_data[trap_row][trap_col] == schematic_char
+                    ):
+                        lever_map_positions[lever_pos] = trap_pos
+                        break
 
         # Ensure all levers are mapped
         assert len(lever_map_positions) == len(lever_positions), (
