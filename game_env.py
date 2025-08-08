@@ -458,7 +458,12 @@ class GameEnv:
         :param state: current GameState
         :return: True if solved, False otherwise
         """
-        return state.row == self.goal_row and state.col == self.goal_col
+        all_traps_activated = True
+        for status in state.trap_status:
+            if status == 0:
+                all_traps_activated = False
+                break
+        return state.row == self.goal_row and state.col == self.goal_col and all_traps_activated
 
     def render(self, state):
         """
