@@ -282,6 +282,16 @@ class GameEnv:
             ):
                 # Cannot walk on a trap that is not locked
                 return False
+            elif action == self.SPRINT_LEFT and self.grid_data[state.row][
+                state.col - 1
+            ] not in (self.AIR_TILE, self.LADDER_TILE, self.LEVER):
+                # Cannot sprint through invalid tile
+                return False
+            elif action == self.SPRINT_RIGHT and self.grid_data[state.row][
+                state.col + 1
+            ] not in (self.AIR_TILE, self.LADDER_TILE, self.LEVER):
+                # Cannot sprint through invalid tile
+                return False
             elif floor_tile == self.LADDER_TILE:
                 if (
                     action == self.JUMP
@@ -319,16 +329,6 @@ class GameEnv:
             ):
                 # Cannot sprint over invalid tile
                 return False
-            elif action == self.SPRINT_LEFT and self.grid_data[state.row][
-                state.col - 1
-            ] not in (self.AIR_TILE, self.LADDER_TILE, self.LEVER):
-                # Cannot sprint through invalid tile
-                return False
-            elif action == self.SPRINT_RIGHT and self.grid_data[state.row][
-                state.col + 1
-            ] not in (self.AIR_TILE, self.LADDER_TILE, self.LEVER):
-                # Cannot sprint over invalid tile
-                return False
         elif action == self.DROP:
             if (
                 floor_tile in (self.TRAPDOOR, self.DRAWBRIDGE)
@@ -344,6 +344,7 @@ class GameEnv:
                 self.AIR_TILE,
                 self.DRAWBRIDGE,
                 self.TRAPDOOR,
+                self.LEVER,
             ):
                 # Cannot drop through invalid tile (tiles not listed)
                 return False
@@ -463,7 +464,11 @@ class GameEnv:
             if status == 0:
                 all_traps_activated = False
                 break
-        return state.row == self.goal_row and state.col == self.goal_col and all_traps_activated
+        return (
+            state.row == self.goal_row
+            and state.col == self.goal_col
+            and all_traps_activated
+        )
 
     def render(self, state):
         """
