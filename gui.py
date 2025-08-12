@@ -53,41 +53,54 @@ class GUI:
         self.canvas.configure(bg="white")
         self.canvas.pack(fill="both", expand=True)
 
+        self.trapdoors_locked = {}
+        self.trapdoors_closed = {}
+        self.trapdoors_open = {}
+        self.drawbridges_closed = {}
+        self.drawbridges_open = {}
+        self.trapdoor_levers_open = {}
+        self.trapdoor_levers_closed = {}
+        self.drawbridge_levers_open = {}
+        self.drawbridge_levers_closed = {}
+
         # Load images
         if small_mode:
             self.background = tk.PhotoImage(file="gui_assets/background_wall_small.png")
-            self.tile_player = tk.PhotoImage(
-                file="gui_assets/player_mouse_small.png"
-            )
+            self.tile_player = tk.PhotoImage(file="gui_assets/player_mouse_small.png")
             self.tile_cheese = tk.PhotoImage(file="gui_assets/goal_cheese_small.png")
-            self.tile_ladder = tk.PhotoImage(
-                file="gui_assets/ladder_small.png"
-            )
+            self.tile_ladder = tk.PhotoImage(file="gui_assets/ladder_small.png")
             self.tile_stone = tk.PhotoImage(file="gui_assets/solid_wall_small.png")
-            self.tile_open_drawbridge = tk.PhotoImage(
-                file="gui_assets/open_drawbridge_small.png"
-            )
-            self.tile_closed_drawbridge = tk.PhotoImage(
-                file="gui_assets/closed_drawbridge_small.png"
-            )
-            self.tile_open_trapdoor = tk.PhotoImage(
-                file="gui_assets/open_trapdoor_small.png"
-            )
-            self.tile_closed_trapdoor = tk.PhotoImage(
-                file="gui_assets/closed_trapdoor_small.png"
-            )
-            self.tile_open_lever_1 = tk.PhotoImage(
-                file="gui_assets/lever_1_closed_small.png"
-            )
-            self.tile_closed_lever_1 = tk.PhotoImage(
-                file="gui_assets/lever_1_closed_small.png"
-            )
-            self.tile_open_lever_2 = tk.PhotoImage(
-                file="gui_assets/lever_2_open_small.png"
-            )
-            self.tile_closed_lever_2 = tk.PhotoImage(
-                file="gui_assets/lever_2_open_small.png"
-            )
+
+
+            for i in range(10):
+                self.trapdoors_locked[i] = tk.PhotoImage(
+                    file=f"gui_assets/trapdoors/locked_trapdoor_{i}_small.png"
+                )
+                self.trapdoors_closed[i] = tk.PhotoImage(
+                    file=f"gui_assets/trapdoors/closed_trapdoor_{i}_small.png"
+                )
+                self.trapdoors_open[i] = tk.PhotoImage(
+                    file=f"gui_assets/trapdoors/open_trapdoor_{i}_small.png"
+                )
+                self.drawbridges_closed[i] = tk.PhotoImage(
+                    file=f"gui_assets/drawbridges/closed_drawbridge_{i}_small.png"
+                )
+                self.drawbridges_open[i] = tk.PhotoImage(
+                    file=f"gui_assets/drawbridges/open_drawbridge_{i}.png"
+                )
+
+                self.trapdoor_levers_closed[i] = tk.PhotoImage(
+                    file=f"gui_assets/trapdoors/closed_trapdoor_lever_{i}_small.png"
+                )
+                self.trapdoor_levers_open[i] = tk.PhotoImage(
+                    file=f"gui_assets/trapdoors/open_trapdoor_lever_{i}_small.png"
+                )
+                self.drawbridge_levers_closed[i] = tk.PhotoImage(
+                    file=f"gui_assets/drawbridges/closed_drawbridge_lever_{i}_small.png"
+                )
+                self.drawbridge_levers_open[i] = tk.PhotoImage(
+                    file=f"gui_assets/drawbridges/open_drawbridge_lever_{i}_small.png"
+                )
 
         else:
             self.background = tk.PhotoImage(file="gui_assets/background_wall.png")
@@ -95,24 +108,36 @@ class GUI:
             self.tile_cheese = tk.PhotoImage(file="gui_assets/goal_cheese.png")
             self.tile_ladder = tk.PhotoImage(file="gui_assets/ladder.png")
             self.tile_stone = tk.PhotoImage(file="gui_assets/solid_wall.png")
-            self.tile_open_drawbridge = tk.PhotoImage(
-                file="gui_assets/open_drawbridge.png"
-            )
-            self.tile_closed_drawbridge = tk.PhotoImage(
-                file="gui_assets/closed_drawbridge.png"
-            )
-            self.tile_open_trapdoor = tk.PhotoImage(file="gui_assets/open_trapdoor.png")
-            self.tile_closed_trapdoor = tk.PhotoImage(
-                file="gui_assets/closed_trapdoor.png"
-            )
-            self.tile_open_lever_1 = tk.PhotoImage(file="gui_assets/lever_1_open.png")
-            self.tile_closed_lever_1 = tk.PhotoImage(
-                file="gui_assets/lever_1_closed.png"
-            )
-            self.tile_open_lever_2 = tk.PhotoImage(file="gui_assets/lever_2_open.png")
-            self.tile_closed_lever_2 = tk.PhotoImage(
-                file="gui_assets/lever_2_closed.png"
-            )
+
+            for i in range(10):
+                self.trapdoors_locked[i] = tk.PhotoImage(
+                    file=f"gui_assets/trapdoors/locked_trapdoor_{i}.png"
+                )
+                self.trapdoors_closed[i] = tk.PhotoImage(
+                    file=f"gui_assets/trapdoors/closed_trapdoor_{i}.png"
+                )
+                self.trapdoors_open[i] = tk.PhotoImage(
+                    file=f"gui_assets/trapdoors/open_trapdoor_{i}.png"
+                )
+                self.drawbridges_closed[i] = tk.PhotoImage(
+                    file=f"gui_assets/drawbridges/closed_drawbridge_{i}.png"
+                )
+                self.drawbridges_open[i] = tk.PhotoImage(
+                    file=f"gui_assets/drawbridges/open_drawbridge_{i}.png"
+                )
+
+                self.trapdoor_levers_closed[i] = tk.PhotoImage(
+                    file=f"gui_assets/trapdoors/closed_trapdoor_lever_{i}.png"
+                )
+                self.trapdoor_levers_open[i] = tk.PhotoImage(
+                    file=f"gui_assets/trapdoors/open_trapdoor_lever_{i}.png"
+                )
+                self.drawbridge_levers_closed[i] = tk.PhotoImage(
+                    file=f"gui_assets/drawbridges/closed_drawbridge_lever_{i}.png"
+                )
+                self.drawbridge_levers_open[i] = tk.PhotoImage(
+                    file=f"gui_assets/drawbridges/open_drawbridge_lever_{i}.png"
+                )
 
         # Draw background (all permanent features, i.e. everything except player, traps, and levers)
         for r in range(self.game_env.n_rows):
@@ -137,7 +162,12 @@ class GUI:
                         image=self.tile_ladder,
                         anchor=tk.NW,
                     )
-                elif self.game_env.grid_data[r][c] in (GameEnv.AIR_TILE, GameEnv.TRAPDOOR, GameEnv.DRAWBRIDGE, GameEnv.LEVER):
+                elif self.game_env.grid_data[r][c] in (
+                    GameEnv.AIR_TILE,
+                    GameEnv.TRAPDOOR,
+                    GameEnv.DRAWBRIDGE,
+                    GameEnv.LEVER,
+                ):
                     self.canvas.create_image(
                         (c * self.tile_w),
                         (r * self.tile_h),
@@ -203,6 +233,8 @@ class GUI:
     def draw_traps_and_levers(self, state):
         self.trap_images = []
         self.lever_images = []
+        drawbridge_id = 0
+        trapdoor_id = 0
 
         for i, t in enumerate(state.trap_status):
             if (
@@ -216,66 +248,69 @@ class GUI:
                     trap_img = self.canvas.create_image(
                         (self.game_env.trap_positions[i][1] * self.tile_w),
                         ((self.game_env.trap_positions[i][0] - 1) * self.tile_h),
-                        image=self.tile_open_drawbridge,
+                        image=self.drawbridges_open[drawbridge_id],
                         anchor=tk.NW,
                     )
                     lever_img = self.canvas.create_image(
                         (self.game_env.lever_positions[i][1] * self.tile_w),
                         (self.game_env.lever_positions[i][0] * self.tile_h),
-                        image=self.tile_open_lever_2,
+                        image=self.drawbridge_levers_open[drawbridge_id],
                         anchor=tk.NW,
                     )
                 else:
                     trap_img = self.canvas.create_image(
                         (self.game_env.trap_positions[i][1] * self.tile_w),
                         ((self.game_env.trap_positions[i][0] - 1) * self.tile_h),
-                        image=self.tile_closed_drawbridge,
+                        image=self.drawbridges_closed[drawbridge_id],
                         anchor=tk.NW,
                     )
                     lever_img = self.canvas.create_image(
                         (self.game_env.lever_positions[i][1] * self.tile_w),
                         (self.game_env.lever_positions[i][0] * self.tile_h),
-                        image=self.tile_closed_lever_2,
+                        image=self.drawbridge_levers_closed[drawbridge_id],
                         anchor=tk.NW,
                     )
+                drawbridge_id += 1
             else:
                 # Draw open or closed trapdoor and lever based on trap status
                 # and player position (open trapdoor if player is above or on it)
-                if t == 1:
+                if t == 1:  # trapdoor locked
                     lever_img = self.canvas.create_image(
                         (self.game_env.lever_positions[i][1] * self.tile_w),
                         (self.game_env.lever_positions[i][0] * self.tile_h),
-                        image=self.tile_open_lever_1,
+                        image=self.trapdoor_levers_open[trapdoor_id],
                         anchor=tk.NW,
                     )
                     trap_img = self.canvas.create_image(
                         (self.game_env.trap_positions[i][1] * self.tile_w),
                         (self.game_env.trap_positions[i][0] * self.tile_h),
-                        image=self.tile_closed_trapdoor,
+                        image=self.trapdoors_locked[trapdoor_id],
                         anchor=tk.NW,
                     )
-                else:
+                else:  # trapdoor unlocked
                     lever_img = self.canvas.create_image(
                         (self.game_env.lever_positions[i][1] * self.tile_w),
                         (self.game_env.lever_positions[i][0] * self.tile_h),
-                        image=self.tile_closed_lever_1,
+                        image=self.trapdoor_levers_closed[trapdoor_id],
                         anchor=tk.NW,
                     )
-                    if ((state.row + 1, state.col) == self.game_env.trap_positions[i] or
-                            (state.row, state.col) == self.game_env.trap_positions[i]):
+                    if (state.row + 1, state.col) == self.game_env.trap_positions[
+                        i
+                    ] or (state.row, state.col) == self.game_env.trap_positions[i]:
                         trap_img = self.canvas.create_image(
                             (self.game_env.trap_positions[i][1] * self.tile_w),
                             (self.game_env.trap_positions[i][0] * self.tile_h),
-                            image=self.tile_open_trapdoor,
+                            image=self.trapdoors_open[trapdoor_id],
                             anchor=tk.NW,
                         )
                     else:
                         trap_img = self.canvas.create_image(
                             (self.game_env.trap_positions[i][1] * self.tile_w),
                             (self.game_env.trap_positions[i][0] * self.tile_h),
-                            image=self.tile_closed_trapdoor,
+                            image=self.trapdoors_closed[trapdoor_id],
                             anchor=tk.NW,
                         )
+                trapdoor_id += 1
 
             self.trap_images.append(trap_img)
             self.lever_images.append(lever_img)
