@@ -1,13 +1,13 @@
 # num rows, num cols
 11, 9
 # cost targets (min score target, max score target)
-18.4, 9.2
+0.0, 0.0
 # nodes targets (min score target, max score target)
-20, 13
+0.0, 0.0
 # UCS run time targets (min score target, max score target)
-0.0020, 0.0012
+0.0, 0.0
 # A* run time targets (min score target, max score target)
-0.0014, 0.0007
+0.0, 0.0
 # grid data
 XXXXXXXXX
 XG     LX

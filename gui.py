@@ -65,41 +65,40 @@ class GUI:
 
         # Load images
         if small_mode:
-            self.background = tk.PhotoImage(file="gui_assets/background_wall_small.png")
-            self.tile_player = tk.PhotoImage(file="gui_assets/player_mouse_small.png")
-            self.tile_cheese = tk.PhotoImage(file="gui_assets/goal_cheese_small.png")
-            self.tile_ladder = tk.PhotoImage(file="gui_assets/ladder_small.png")
-            self.tile_stone = tk.PhotoImage(file="gui_assets/solid_wall_small.png")
-
+            self.background = tk.PhotoImage(file="gui_assets/Small/background_wall.png")
+            self.tile_player = tk.PhotoImage(file="gui_assets/Small/player_mouse.png")
+            self.tile_cheese = tk.PhotoImage(file="gui_assets/Small/goal_cheese.png")
+            self.tile_ladder = tk.PhotoImage(file="gui_assets/Small/ladder.png")
+            self.tile_stone = tk.PhotoImage(file="gui_assets/Small/solid_wall.png")
 
             for i in range(10):
                 self.trapdoors_locked[i] = tk.PhotoImage(
-                    file=f"gui_assets/trapdoors/locked_trapdoor_{i}_small.png"
+                    file=f"gui_assets/Small/trapdoors/locked_trapdoor_{i}.png"
                 )
                 self.trapdoors_closed[i] = tk.PhotoImage(
-                    file=f"gui_assets/trapdoors/closed_trapdoor_{i}_small.png"
+                    file=f"gui_assets/Small/trapdoors/closed_trapdoor_{i}.png"
                 )
                 self.trapdoors_open[i] = tk.PhotoImage(
-                    file=f"gui_assets/trapdoors/open_trapdoor_{i}_small.png"
+                    file=f"gui_assets/Small/trapdoors/open_trapdoor_{i}.png"
                 )
                 self.drawbridges_closed[i] = tk.PhotoImage(
-                    file=f"gui_assets/drawbridges/closed_drawbridge_{i}_small.png"
+                    file=f"gui_assets/Small/drawbridges/closed_drawbridge_{i}.png"
                 )
                 self.drawbridges_open[i] = tk.PhotoImage(
-                    file=f"gui_assets/drawbridges/open_drawbridge_{i}.png"
+                    file=f"gui_assets/Small/drawbridges/open_drawbridge_{i}.png"
                 )
 
                 self.trapdoor_levers_closed[i] = tk.PhotoImage(
-                    file=f"gui_assets/trapdoors/closed_trapdoor_lever_{i}_small.png"
+                    file=f"gui_assets/Small/trapdoors/closed_trapdoor_lever_{i}.png"
                 )
                 self.trapdoor_levers_open[i] = tk.PhotoImage(
-                    file=f"gui_assets/trapdoors/open_trapdoor_lever_{i}_small.png"
+                    file=f"gui_assets/Small/trapdoors/open_trapdoor_lever_{i}.png"
                 )
                 self.drawbridge_levers_closed[i] = tk.PhotoImage(
-                    file=f"gui_assets/drawbridges/closed_drawbridge_lever_{i}_small.png"
+                    file=f"gui_assets/Small/drawbridges/closed_drawbridge_lever_{i}.png"
                 )
                 self.drawbridge_levers_open[i] = tk.PhotoImage(
-                    file=f"gui_assets/drawbridges/open_drawbridge_lever_{i}_small.png"
+                    file=f"gui_assets/Small/drawbridges/open_drawbridge_lever_{i}.png"
                 )
 
         else:
