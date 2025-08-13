@@ -6,7 +6,7 @@ game_env.py
 This file contains a class representing a Cheese Hunter environment. You should make use of this class in your
 solver.
 
-COMP3702 Assignment 1 "CheeseHunter" Support Code, 2025
+COMP3702 Assignment 1 "Cheese Hunter" Support Code, 2025
 """
 
 
@@ -48,13 +48,28 @@ class GameEnv:
     CLIMB = "c"
     DROP = "d"
     ACTIVATE = "a"
-    ACTIONS = {WALK_LEFT, WALK_RIGHT, CLIMB, DROP, ACTIVATE}
+    JUMP = "j"
+    SPRINT_LEFT = "sl"
+    SPRINT_RIGHT = "sr"
+    ACTIONS = {
+        WALK_LEFT,
+        WALK_RIGHT,
+        CLIMB,
+        DROP,
+        ACTIVATE,
+        JUMP,
+        SPRINT_LEFT,
+        SPRINT_RIGHT,
+    }
     ACTION_COST = {
         WALK_LEFT: 1.0,
         WALK_RIGHT: 1.0,
         CLIMB: 2.0,
         DROP: 0.5,
         ACTIVATE: 1.0,
+        JUMP: 2.0,
+        SPRINT_LEFT: 1.9,
+        SPRINT_RIGHT: 1.9,
     }
 
     # Perform action return statuses
@@ -193,20 +208,13 @@ class GameEnv:
         # Store schematic data if available
         self.schematic_data = schematic_data if schematic_data else None
 
-        # Map lever positions to trap positions
-        if self.schematic_data:
-            # Use schematic-based mapping
-            lever_map_positions = self._create_schematic_mapping(
-                lever_positions, trap_positions
-            )
-        else:
-            # Fallback to position-based mapping (order of appearance)
-            assert len(lever_positions) == len(trap_positions), (
-                f"/!\\ ERROR: Number of levers ({len(lever_positions)}) must match number of traps ({len(trap_positions)})"
-            )
-            lever_map_positions = {}
-            for i, lever_position in enumerate(lever_positions):
-                lever_map_positions[lever_position] = trap_positions[i]
+        # Map lever positions to trap positions using schematic data
+        assert self.schematic_data is not None, (
+            "/!\\ ERROR: Lever-trap mapping requires schematic data in level file"
+        )
+        lever_map_positions = self._create_schematic_mapping(
+            lever_positions, trap_positions
+        )
 
         self.lever_positions = lever_positions
         self.lever_map_positions = lever_map_positions
@@ -231,77 +239,163 @@ class GameEnv:
             self.init_row, self.init_col, tuple(0 for _ in self.trap_positions)
         )
 
+    def check_valid_action(self, state, action):
+        """Check a given action is able to be performed in a given state.
+        :param state: current GameState
+        :param action: an element of self.ACTIONS
+        :return: successful [True/False]
+        """
+        floor_tile = self.grid_data[state.row + 1][state.col]
+        if action in (
+            self.WALK_LEFT,
+            self.WALK_RIGHT,
+            self.SPRINT_LEFT,
+            self.SPRINT_RIGHT,
+            self.JUMP,
+        ):
+            if action == self.SPRINT_LEFT and (
+                self.grid_data[state.row + 1][state.col - 1]
+                in (self.TRAPDOOR, self.DRAWBRIDGE)
+                and state.trap_status[
+                    self.trap_positions.index((state.row + 1, state.col - 1))
+                ]
+                == 0
+            ):
+                # Cannot sprint on a trap that is not locked
+                return False
+            elif action == self.SPRINT_RIGHT and (
+                self.grid_data[state.row + 1][state.col + 1]
+                in (self.TRAPDOOR, self.DRAWBRIDGE)
+                and state.trap_status[
+                    self.trap_positions.index((state.row + 1, state.col + 1))
+                ]
+                == 0
+            ):
+                # Cannot sprint on a trap that is not locked
+                return False
+            elif (
+                floor_tile in (self.TRAPDOOR, self.DRAWBRIDGE)
+                and state.trap_status[
+                    self.trap_positions.index((state.row + 1, state.col))
+                ]
+                == 0
+            ):
+                # Cannot walk on a trap that is not locked
+                return False
+            elif action == self.SPRINT_LEFT and self.grid_data[state.row][
+                state.col - 1
+            ] not in (self.AIR_TILE, self.LADDER_TILE, self.LEVER):
+                # Cannot sprint through invalid tile
+                return False
+            elif action == self.SPRINT_RIGHT and self.grid_data[state.row][
+                state.col + 1
+            ] not in (self.AIR_TILE, self.LADDER_TILE, self.LEVER):
+                # Cannot sprint through invalid tile
+                return False
+            elif floor_tile == self.LADDER_TILE:
+                if (
+                    action == self.JUMP
+                    and self.grid_data[state.row][state.col] == self.LADDER_TILE
+                ):
+                    # Cannot jump while climbing a ladder
+                    return False
+                else:
+                    # Can walk or sprint on top a ladder
+                    return True
+            elif floor_tile not in (
+                self.SOLID_TILE,
+                self.DRAWBRIDGE,
+                self.TRAPDOOR,
+            ):
+                # Cannot walk on invalid surface (tiles not listed)
+                return False
+            elif action == self.SPRINT_LEFT and self.grid_data[state.row + 1][
+                state.col - 1
+            ] not in (
+                self.SOLID_TILE,
+                self.DRAWBRIDGE,
+                self.TRAPDOOR,
+                self.LADDER_TILE,
+            ):
+                # Cannot sprint over invalid tile
+                return False
+            elif action == self.SPRINT_RIGHT and self.grid_data[state.row + 1][
+                state.col + 1
+            ] not in (
+                self.SOLID_TILE,
+                self.DRAWBRIDGE,
+                self.TRAPDOOR,
+                self.LADDER_TILE,
+            ):
+                # Cannot sprint over invalid tile
+                return False
+        elif action == self.DROP:
+            if (
+                floor_tile in (self.TRAPDOOR, self.DRAWBRIDGE)
+                and state.trap_status[
+                    self.trap_positions.index((state.row + 1, state.col))
+                ]
+                == 1
+            ):
+                # Cannot drop through locked trap
+                return False
+            elif floor_tile not in (
+                self.LADDER_TILE,
+                self.AIR_TILE,
+                self.DRAWBRIDGE,
+                self.TRAPDOOR,
+                self.LEVER,
+            ):
+                # Cannot drop through invalid tile (tiles not listed)
+                return False
+        elif (
+            action == self.CLIMB
+            and self.grid_data[state.row][state.col] != self.LADDER_TILE
+        ):
+            # Cannot climb on invalid tile (can only climb on ladders)
+            return False
+
+        return True
+
+    def check_collision(self, next_position, next_trap_status):
+        """Check a given action is able to be performed in a given state.
+        :param next_position: next position of player based on action
+        :param next_trap_status: trap status of new state
+        :return: collision [True/False]
+        """
+        next_row, next_col = next_position
+        # Check that next_state is within bounds
+        if not (0 <= next_row < self.n_rows and 0 <= next_col < self.n_cols):
+            # Next state is out of bounds
+            return True
+
+        # Check for a collision (with either next state or a closed drawbridge)
+        if self.grid_data[next_row][next_col] == self.SOLID_TILE:
+            # Collision with a solid tile
+            return True
+
+        elif (
+            self.grid_data[next_row + 1][next_col] == self.DRAWBRIDGE
+            and next_trap_status[self.trap_positions.index((next_row + 1, next_col))]
+            == 0
+        ):
+            # Collision with a closed drawbridge
+            return True
+
+        return False
+
     def perform_action(self, state, action):
         """
-        Perform the given action on the given state, and return whether the action was successful (i.e. valid and
-        collision free) and the resulting new state.
+        Perform the given action on the given state, and return whether the
+        action was successful (i.e. valid and collision free) and the resulting
+        new state.
         :param state: current GameState
         :param action: an element of self.ACTIONS
         :return: (successful [True/False], next_state [GameState])
         """
 
         # Check action is valid
-        if (
-            action in (self.WALK_LEFT, self.WALK_RIGHT)
-            and self.grid_data[state.row + 1][state.col] == self.TRAPDOOR
-            and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
-            == 0
-        ):
-            # Cannot walk on a trapdoor that is not locked
-            return False, state.deepcopy()
-
-        elif (
-            action in (self.WALK_LEFT, self.WALK_RIGHT)
-            and self.grid_data[state.row + 1][state.col] == self.DRAWBRIDGE
-            and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
-            == 0
-        ):
-            # Cannot walk on a drawbridge that is closed
-            return False, state.deepcopy()
-
-        elif action in (self.WALK_LEFT, self.WALK_RIGHT) and self.grid_data[
-            state.row + 1
-        ][state.col] not in (
-            self.SOLID_TILE,
-            self.LADDER_TILE,
-            self.DRAWBRIDGE,
-            self.TRAPDOOR,
-        ):
-            # Cannot walk on invalid surface (tiles not listed)
-            return False, state.deepcopy()
-
-        elif (
-            action == self.CLIMB
-            and self.grid_data[state.row][state.col] != self.LADDER_TILE
-        ):
-            # Cannot climb on invalid tile (can only climb on ladders)
-            return False, state.deepcopy()
-
-        elif (
-            action == self.DROP
-            and self.grid_data[state.row + 1][state.col] == self.TRAPDOOR
-            and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
-            == 1
-        ):
-            # Cannot drop through locked trapdoor
-            return False, state.deepcopy()
-
-        elif (
-            action == self.DROP
-            and self.grid_data[state.row + 1][state.col] == self.DRAWBRIDGE
-            and state.trap_status[self.trap_positions.index((state.row + 1, state.col))]
-            == 1
-        ):
-            # Cannot drop through open drawbridge
-            return False, state.deepcopy()
-
-        elif action == self.DROP and self.grid_data[state.row + 1][state.col] not in (
-            self.LADDER_TILE,
-            self.AIR_TILE,
-            self.DRAWBRIDGE,
-            self.TRAPDOOR,
-        ):
-            # Cannot drop through invalid tile (tiles not listed)
+        if not self.check_valid_action(state, action):
             return False, state.deepcopy()
 
         next_trap_status = list(state.trap_status)
@@ -312,8 +406,17 @@ class GameEnv:
         elif action == self.WALK_RIGHT:
             next_row, next_col = (state.row, state.col + 1)  # right
 
+        elif action == self.SPRINT_LEFT:
+            next_row, next_col = (state.row, state.col - 2)  # left 2
+
+        elif action == self.SPRINT_RIGHT:
+            next_row, next_col = (state.row, state.col + 2)  # right 2
+
+        elif action == self.JUMP:
+            next_row, next_col = (state.row - 1, state.col)  # up (jump)
+
         elif action == self.CLIMB:
-            next_row, next_col = (state.row - 1, state.col)  # up
+            next_row, next_col = (state.row - 1, state.col)  # up (climb)
 
         elif action == self.DROP:
             next_row, next_col = (state.row + 1, state.col)  # down
@@ -345,21 +448,7 @@ class GameEnv:
         else:
             assert False, "/!\\ ERROR: Invalid action given to perform_action()"
 
-        # Check that next_state is within bounds
-        if not (0 <= next_row < self.n_rows and 0 <= next_col < self.n_cols):
-            # Next state is out of bounds
-            return False, state.deepcopy()
-
-        # Check for a collision (with either next state or a closed drawbridge)
-        if self.grid_data[next_row][next_col] is self.SOLID_TILE:
-            # Collision with a solid tile
-            return False, state.deepcopy()
-        elif (
-            self.grid_data[next_row + 1][next_col] is self.DRAWBRIDGE
-            and next_trap_status[self.trap_positions.index((next_row + 1, next_col))]
-            == 0
-        ):
-            # Collision with a closed drawbridge
+        if self.check_collision((next_row, next_col), next_trap_status):
             return False, state.deepcopy()
 
         return True, GameState(next_row, next_col, tuple(next_trap_status))
@@ -370,7 +459,16 @@ class GameEnv:
         :param state: current GameState
         :return: True if solved, False otherwise
         """
-        return state.row == self.goal_row and state.col == self.goal_col
+        all_traps_activated = True
+        for status in state.trap_status:
+            if status == 0:
+                all_traps_activated = False
+                break
+        return (
+            state.row == self.goal_row
+            and state.col == self.goal_col
+            and all_traps_activated
+        )
 
     def render(self, state):
         """
@@ -403,20 +501,6 @@ class GameEnv:
         """
         lever_map_positions = {}
 
-        # Create ID lookup from schematic (only if schematic exists)
-        if not self.schematic_data:
-            return {}
-
-        id_to_positions = {}
-        for r in range(len(self.schematic_data)):
-            for c in range(len(self.schematic_data[r])):
-                char = self.schematic_data[r][c]
-                if char.isdigit() and char != "0":
-                    id_val = int(char)
-                    if id_val not in id_to_positions:
-                        id_to_positions[id_val] = []
-                    id_to_positions[id_val].append((r, c))
-
         # Map levers to traps based on shared IDs in schematic
         for lever_pos in lever_positions:
             lever_row, lever_col = lever_pos
@@ -424,30 +508,22 @@ class GameEnv:
                 self.schematic_data[lever_row]
             ):
                 schematic_char = self.schematic_data[lever_row][lever_col]
-                if schematic_char.isdigit() and schematic_char != "0":
-                    # Find the trap with the same ID
-                    for trap_pos in trap_positions:
-                        trap_row, trap_col = trap_pos
-                        if (
-                            trap_row < len(self.schematic_data)
-                            and trap_col < len(self.schematic_data[trap_row])
-                            and self.schematic_data[trap_row][trap_col]
-                            == schematic_char
-                        ):
-                            lever_map_positions[lever_pos] = trap_pos
-                            break
+                # Find the trap with the same ID
+                for trap_pos in trap_positions:
+                    trap_row, trap_col = trap_pos
+                    if (
+                        trap_row < len(self.schematic_data)
+                        and trap_col < len(self.schematic_data[trap_row])
+                        and self.schematic_data[trap_row][trap_col] == schematic_char
+                    ):
+                        lever_map_positions[lever_pos] = trap_pos
+                        break
 
-        # Fallback to position-based mapping for unmapped levers
-        unmapped_levers = [
-            lev for lev in lever_positions if lev not in lever_map_positions
-        ]
-        unmapped_traps = [
-            trap for trap in trap_positions if trap not in lever_map_positions.values()
-        ]
-
-        for i, lever_pos in enumerate(unmapped_levers):
-            if i < len(unmapped_traps):
-                lever_map_positions[lever_pos] = unmapped_traps[i]
+        # Ensure all levers are mapped
+        assert len(lever_map_positions) == len(lever_positions), (
+            f"/!\\ ERROR: Not all levers could be mapped via schematic. "
+            f"Mapped {len(lever_map_positions)} of {len(lever_positions)} levers."
+        )
 
         return lever_map_positions
 

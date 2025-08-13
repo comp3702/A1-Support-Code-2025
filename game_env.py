@@ -245,6 +245,7 @@ class GameEnv:
         :param action: an element of self.ACTIONS
         :return: successful [True/False]
         """
+        floor_tile = self.grid_data[state.row + 1][state.col]
         if action in (
             self.WALK_LEFT,
             self.WALK_RIGHT,
@@ -252,25 +253,46 @@ class GameEnv:
             self.SPRINT_RIGHT,
             self.JUMP,
         ):
-            if (
-                self.grid_data[state.row + 1][state.col] == self.TRAPDOOR
+            if action == self.SPRINT_LEFT and (
+                self.grid_data[state.row + 1][state.col - 1]
+                in (self.TRAPDOOR, self.DRAWBRIDGE)
                 and state.trap_status[
-                    self.trap_positions.index((state.row + 1, state.col))
+                    self.trap_positions.index((state.row + 1, state.col - 1))
                 ]
                 == 0
             ):
-                # Cannot walk on a trapdoor that is not locked
+                # Cannot sprint on a trap that is not locked
+                return False
+            elif action == self.SPRINT_RIGHT and (
+                self.grid_data[state.row + 1][state.col + 1]
+                in (self.TRAPDOOR, self.DRAWBRIDGE)
+                and state.trap_status[
+                    self.trap_positions.index((state.row + 1, state.col + 1))
+                ]
+                == 0
+            ):
+                # Cannot sprint on a trap that is not locked
                 return False
             elif (
-                self.grid_data[state.row + 1][state.col] == self.DRAWBRIDGE
+                floor_tile in (self.TRAPDOOR, self.DRAWBRIDGE)
                 and state.trap_status[
                     self.trap_positions.index((state.row + 1, state.col))
                 ]
                 == 0
             ):
-                # Cannot walk on a drawbridge that is closed
+                # Cannot walk on a trap that is not locked
                 return False
-            elif self.grid_data[state.row + 1][state.col] == self.LADDER_TILE:
+            elif action == self.SPRINT_LEFT and self.grid_data[state.row][
+                state.col - 1
+            ] not in (self.AIR_TILE, self.LADDER_TILE, self.LEVER):
+                # Cannot sprint through invalid tile
+                return False
+            elif action == self.SPRINT_RIGHT and self.grid_data[state.row][
+                state.col + 1
+            ] not in (self.AIR_TILE, self.LADDER_TILE, self.LEVER):
+                # Cannot sprint through invalid tile
+                return False
+            elif floor_tile == self.LADDER_TILE:
                 if (
                     action == self.JUMP
                     and self.grid_data[state.row][state.col] == self.LADDER_TILE
@@ -280,37 +302,49 @@ class GameEnv:
                 else:
                     # Can walk or sprint on top a ladder
                     return True
-            elif self.grid_data[state.row + 1][state.col] not in (
+            elif floor_tile not in (
                 self.SOLID_TILE,
                 self.DRAWBRIDGE,
                 self.TRAPDOOR,
             ):
                 # Cannot walk on invalid surface (tiles not listed)
                 return False
+            elif action == self.SPRINT_LEFT and self.grid_data[state.row + 1][
+                state.col - 1
+            ] not in (
+                self.SOLID_TILE,
+                self.DRAWBRIDGE,
+                self.TRAPDOOR,
+                self.LADDER_TILE,
+            ):
+                # Cannot sprint over invalid tile
+                return False
+            elif action == self.SPRINT_RIGHT and self.grid_data[state.row + 1][
+                state.col + 1
+            ] not in (
+                self.SOLID_TILE,
+                self.DRAWBRIDGE,
+                self.TRAPDOOR,
+                self.LADDER_TILE,
+            ):
+                # Cannot sprint over invalid tile
+                return False
         elif action == self.DROP:
             if (
-                self.grid_data[state.row + 1][state.col] == self.TRAPDOOR
+                floor_tile in (self.TRAPDOOR, self.DRAWBRIDGE)
                 and state.trap_status[
                     self.trap_positions.index((state.row + 1, state.col))
                 ]
                 == 1
             ):
-                # Cannot drop through locked trapdoor
+                # Cannot drop through locked trap
                 return False
-            elif (
-                self.grid_data[state.row + 1][state.col] == self.DRAWBRIDGE
-                and state.trap_status[
-                    self.trap_positions.index((state.row + 1, state.col))
-                ]
-                == 1
-            ):
-                # Cannot drop through open drawbridge
-                return False
-            elif self.grid_data[state.row + 1][state.col] not in (
+            elif floor_tile not in (
                 self.LADDER_TILE,
                 self.AIR_TILE,
                 self.DRAWBRIDGE,
                 self.TRAPDOOR,
+                self.LEVER,
             ):
                 # Cannot drop through invalid tile (tiles not listed)
                 return False
@@ -336,12 +370,12 @@ class GameEnv:
             return True
 
         # Check for a collision (with either next state or a closed drawbridge)
-        if self.grid_data[next_row][next_col] is self.SOLID_TILE:
+        if self.grid_data[next_row][next_col] == self.SOLID_TILE:
             # Collision with a solid tile
             return True
 
         elif (
-            self.grid_data[next_row + 1][next_col] is self.DRAWBRIDGE
+            self.grid_data[next_row + 1][next_col] == self.DRAWBRIDGE
             and next_trap_status[self.trap_positions.index((next_row + 1, next_col))]
             == 0
         ):
@@ -425,7 +459,16 @@ class GameEnv:
         :param state: current GameState
         :return: True if solved, False otherwise
         """
-        return state.row == self.goal_row and state.col == self.goal_col
+        all_traps_activated = True
+        for status in state.trap_status:
+            if status == 0:
+                all_traps_activated = False
+                break
+        return (
+            state.row == self.goal_row
+            and state.col == self.goal_col
+            and all_traps_activated
+        )
 
     def render(self, state):
         """
@@ -465,18 +508,16 @@ class GameEnv:
                 self.schematic_data[lever_row]
             ):
                 schematic_char = self.schematic_data[lever_row][lever_col]
-                if schematic_char.isdigit() and schematic_char != "0":
-                    # Find the trap with the same ID
-                    for trap_pos in trap_positions:
-                        trap_row, trap_col = trap_pos
-                        if (
-                            trap_row < len(self.schematic_data)
-                            and trap_col < len(self.schematic_data[trap_row])
-                            and self.schematic_data[trap_row][trap_col]
-                            == schematic_char
-                        ):
-                            lever_map_positions[lever_pos] = trap_pos
-                            break
+                # Find the trap with the same ID
+                for trap_pos in trap_positions:
+                    trap_row, trap_col = trap_pos
+                    if (
+                        trap_row < len(self.schematic_data)
+                        and trap_col < len(self.schematic_data[trap_row])
+                        and self.schematic_data[trap_row][trap_col] == schematic_char
+                    ):
+                        lever_map_positions[lever_pos] = trap_pos
+                        break
 
         # Ensure all levers are mapped
         assert len(lever_map_positions) == len(lever_positions), (

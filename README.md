@@ -131,7 +131,6 @@ schematic_row_1
 schematic_row_num_rows
 ```
 
-**How It Works:**
 - The schematic section uses numeric IDs (1, 2, 3, etc.) to connect levers to traps
 - Positions with the same ID number are connected - activating a lever toggles its paired trap
 - Example: If the schematic has '1' at position (2,5) and '1' at position (7,3), then the lever at (2,5) controls the trap at (7,3)

@@ -19,7 +19,7 @@ VISUALISE_TIME_PER_STEP = 0.7
 def print_usage():
     print("Usage: python tester.py [search_type] [testcase_file] [-v (optional)]")
     print("    search_type = 'ucs' or 'a_star'")
-    print("    testcase_file = filename of a valid testcase file (e.g. L1.txt)")
+    print("    testcase_file = filename of a valid testcase file (e.g. level_1.txt)")
     print("    if -v is specified, the solver's trajectory will be visualised")
 
 
