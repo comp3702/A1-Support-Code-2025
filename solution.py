@@ -25,6 +25,27 @@ class Solver:
         #
         #
 
+    @staticmethod
+    def get_testcases():
+        """
+        Select which testcases you wish the autograder to test you on.
+        The autograder will not run any excluded testcases.
+        e.g. [1, 4, 8] will only run testcases 1, 4, and 8, excluding, 2, 3, 5, 6, and 7.
+        :return: a list containing which testcase numbers to run (testcases in 1-8).
+        """
+        return [1, 2, 3, 4, 5, 6, 7, 8]
+
+    @staticmethod
+    def get_search():
+        """
+        Select which search you wish the autograder to run.
+        The autograder will only run the specified search methods.
+        e.g. "both" will run both UCS and A*, but "a_star" will only run A* and exclude UCS.
+        :return: a string containing which search methods to run ("ucs" to only run UCS, "a_star" to only run A*,
+        and "both" to run both).
+        """
+        return "both"
+
     # === Uniform Cost Search ==========================================================================================
     def search_ucs(self):
         """
