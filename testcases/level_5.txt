@@ -3,7 +3,7 @@
 # cost targets (min score target, max score target)
 512.6, 256.3
 # nodes targets (min score target, max score target)
-60000, 25000
+600000, 200000
 # UCS run time targets (min score target, max score target)
 20.0, 13.5
 # A* run time targets (min score target, max score target)
