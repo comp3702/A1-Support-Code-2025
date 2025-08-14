@@ -57,7 +57,7 @@ Constructs a new GameState instance, where row and column are integers between 0
 This file contains a script which launches an interactive game session when run. Becoming familiar with the game mechanics may be helpful in designing your solution.
 
 To start playing, try:
-`python play_game.py testcases/L1.txt`
+`python play_game.py testcases/level_1.txt`
 
 The script takes 1 command line argument:
 - input_filename, which must be a valid testcase file (e.g. one of the provided files in the testcases directory)
