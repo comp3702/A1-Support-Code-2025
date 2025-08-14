@@ -30,10 +30,10 @@ class Solver:
         """
         Select which testcases you wish the autograder to test you on.
         The autograder will not run any excluded testcases.
-        e.g. [1, 4, 8] will only run testcases 1, 4, and 8, excluding, 2, 3, 5, 6, and 7.
-        :return: a list containing which testcase numbers to run (testcases in 1-8).
+        e.g. [1, 4, 6] will only run testcases 1, 4, and 6, excluding, 2, 3, and 5.
+        :return: a list containing which testcase numbers to run (testcases in 1-6).
         """
-        return [1, 2, 3, 4, 5, 6, 7, 8]
+        return [1, 2, 3, 4, 5, 6]
 
     @staticmethod
     def get_search():
