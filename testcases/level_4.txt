@@ -1,7 +1,7 @@
 # num rows, num cols
 13, 17
 # cost targets (min score target, max score target)
-222.6, 111.3
+130.2, 115.1
 # nodes targets (min score target, max score target)
 3800, 2300
 # UCS run time targets (min score target, max score target)

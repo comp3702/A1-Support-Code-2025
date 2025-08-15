@@ -1,7 +1,7 @@
 # num rows, num cols
 22, 30
 # cost targets (min score target, max score target)
-1011.6, 505.8
+1015.2, 507.6
 # nodes targets (min score target, max score target)
 2500000, 925000
 # UCS run time targets (min score target, max score target)
@@ -25,7 +25,7 @@ X   =X     = XXXXXXX=XXX X=  X
 XXXXXXXXXXX=XX LXXXX=XXX X=  X
 XXXLXXXXXXX=    X   =XXX X= LX
 XXX        =XTXXX=XX=XXX XXXXX
-XXXXXXDXXX = X   =XX=XXX    LX
+XXXXXXDXXXX= X   =XX=XXX    LX
 XL         = XL  =XX=XXX     X
 XXXXXXTXXXX= XXTXXXX=XXX=XXXXX
 XLXXXX XXXX= XX XXXX=XXX=XXXXX

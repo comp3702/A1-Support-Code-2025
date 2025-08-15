@@ -72,11 +72,6 @@ class GameEnv:
         SPRINT_RIGHT: 1.9,
     }
 
-    # Perform action return statuses
-    SUCCESS = 0
-    COLLISION = 1
-    GAME_OVER = 2
-
     def __init__(self, filename):
         """
         Process the given input file and create a new game environment instance based on the input file.
@@ -253,27 +248,60 @@ class GameEnv:
             self.SPRINT_RIGHT,
             self.JUMP,
         ):
-            if action == self.SPRINT_LEFT and (
-                self.grid_data[state.row + 1][state.col - 1]
-                in (self.TRAPDOOR, self.DRAWBRIDGE)
-                and state.trap_status[
-                    self.trap_positions.index((state.row + 1, state.col - 1))
-                ]
-                == 0
-            ):
-                # Cannot sprint on a trap that is not locked
-                return False
-            elif action == self.SPRINT_RIGHT and (
-                self.grid_data[state.row + 1][state.col + 1]
-                in (self.TRAPDOOR, self.DRAWBRIDGE)
-                and state.trap_status[
-                    self.trap_positions.index((state.row + 1, state.col + 1))
-                ]
-                == 0
-            ):
-                # Cannot sprint on a trap that is not locked
-                return False
-            elif (
+            if action == self.SPRINT_LEFT:
+                if (
+                    self.grid_data[state.row + 1][state.col - 1]
+                    in (self.TRAPDOOR, self.DRAWBRIDGE)
+                    and state.trap_status[
+                        self.trap_positions.index((state.row + 1, state.col - 1))
+                    ]
+                    == 0
+                ):
+                    # Cannot sprint over open trap
+                    return False
+                elif self.grid_data[state.row][state.col - 1] not in (
+                    self.AIR_TILE,
+                    self.LADDER_TILE,
+                    self.LEVER,
+                ):
+                    # Cannot sprint through solid block
+                    return False
+                elif self.grid_data[state.row + 1][state.col - 1] not in (
+                    self.SOLID_TILE,
+                    self.DRAWBRIDGE,
+                    self.TRAPDOOR,
+                    self.LADDER_TILE,
+                ):
+                    # Cannot sprint over air
+                    return False
+            elif action == self.SPRINT_RIGHT:
+                if (
+                    self.grid_data[state.row + 1][state.col + 1]
+                    in (self.TRAPDOOR, self.DRAWBRIDGE)
+                    and state.trap_status[
+                        self.trap_positions.index((state.row + 1, state.col + 1))
+                    ]
+                    == 0
+                ):
+                    # Cannot sprint over open trap
+                    return False
+                elif self.grid_data[state.row][state.col + 1] not in (
+                    self.AIR_TILE,
+                    self.LADDER_TILE,
+                    self.LEVER,
+                ):
+                    # Cannot sprint through solid block
+                    return False
+                elif self.grid_data[state.row + 1][state.col + 1] not in (
+                    self.SOLID_TILE,
+                    self.DRAWBRIDGE,
+                    self.TRAPDOOR,
+                    self.LADDER_TILE,
+                ):
+                    # Cannot sprint over air
+                    return False
+
+            if (
                 floor_tile in (self.TRAPDOOR, self.DRAWBRIDGE)
                 and state.trap_status[
                     self.trap_positions.index((state.row + 1, state.col))
@@ -282,52 +310,11 @@ class GameEnv:
             ):
                 # Cannot walk on a trap that is not locked
                 return False
-            elif action == self.SPRINT_LEFT and self.grid_data[state.row][
-                state.col - 1
-            ] not in (self.AIR_TILE, self.LADDER_TILE, self.LEVER):
-                # Cannot sprint through invalid tile
+            elif floor_tile == self.LADDER_TILE and self.grid_data[state.row][state.col] == self.LADDER_TILE and action == self.JUMP:
+                # Cannot jump while climbing a ladder
                 return False
-            elif action == self.SPRINT_RIGHT and self.grid_data[state.row][
-                state.col + 1
-            ] not in (self.AIR_TILE, self.LADDER_TILE, self.LEVER):
-                # Cannot sprint through invalid tile
-                return False
-            elif floor_tile == self.LADDER_TILE:
-                if (
-                    action == self.JUMP
-                    and self.grid_data[state.row][state.col] == self.LADDER_TILE
-                ):
-                    # Cannot jump while climbing a ladder
-                    return False
-                else:
-                    # Can walk or sprint on top a ladder
-                    return True
-            elif floor_tile not in (
-                self.SOLID_TILE,
-                self.DRAWBRIDGE,
-                self.TRAPDOOR,
-            ):
+            elif floor_tile not in (self.SOLID_TILE, self.DRAWBRIDGE, self.TRAPDOOR, self.LADDER_TILE):
                 # Cannot walk on invalid surface (tiles not listed)
-                return False
-            elif action == self.SPRINT_LEFT and self.grid_data[state.row + 1][
-                state.col - 1
-            ] not in (
-                self.SOLID_TILE,
-                self.DRAWBRIDGE,
-                self.TRAPDOOR,
-                self.LADDER_TILE,
-            ):
-                # Cannot sprint over invalid tile
-                return False
-            elif action == self.SPRINT_RIGHT and self.grid_data[state.row + 1][
-                state.col + 1
-            ] not in (
-                self.SOLID_TILE,
-                self.DRAWBRIDGE,
-                self.TRAPDOOR,
-                self.LADDER_TILE,
-            ):
-                # Cannot sprint over invalid tile
                 return False
         elif action == self.DROP:
             if (
