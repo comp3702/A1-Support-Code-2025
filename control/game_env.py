@@ -455,7 +455,7 @@ class GameEnv:
 
     def is_solved(self, state):
         """
-        Check if the game has been solved (i.e. player at exit and all gems collected)
+        Check if the game has been solved (i.e. player at exit and all levers activated)
         :param state: current GameState
         :return: True if solved, False otherwise
         """
