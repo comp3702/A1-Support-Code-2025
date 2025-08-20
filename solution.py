@@ -24,6 +24,8 @@ class Solver:
         #  heuristic preprocessing operations here - use the preprocess_heuristic method below for this purpose).
         #
         #
+        self._heuristic_ready = False
+        self._h_cache = {}
 
     @staticmethod
     def get_testcases():
